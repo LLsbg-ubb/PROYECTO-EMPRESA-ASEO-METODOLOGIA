@@ -23,5 +23,11 @@ module.exports = new EntitySchema({
       type: "many-to-many",
       inverseSide: "especializaciones",
     },
+
+    servicios: {
+      target: "ServicioEspecializacion",
+      type: "one-to-many",
+      inverseSide: "especializacion",
+    }
   }
 });

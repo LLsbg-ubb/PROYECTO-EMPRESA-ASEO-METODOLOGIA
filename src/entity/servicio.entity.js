@@ -121,5 +121,11 @@ module.exports = new EntitySchema({
       type: "one-to-one",
       inverseSide: "servicio",
     },
+
+    especializacionesRequeridas: {
+      target: "ServicioEspecializacion",
+      type: "one-to-many",
+      inverseSide: "servicio",
+}
   }
 });
