@@ -3,10 +3,13 @@ require('reflect-metadata');
 const express = require('express');
 const config = require('./config/config');
 const db = require('./config/db');
+const indexRoutes = require('./routes/index.routes');
 
 const app = express();
 
 app.use(express.json());
+
+app.use("/api", indexRoutes);
 
 app.get('/', (req, res) => {
   res.json({
