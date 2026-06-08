@@ -1,29 +1,20 @@
-const AppDataSource = require("../config/db");
-const Usuario = require("../entity/usuario.entity");
+const usuarioService =
+    require("../services/usuarios.service");
 
-const manejarErrorBaseDatos = require("../utils/manejarErrorBaseDatos");
-const {
-    ocultarContrasena,
-    ocultarContrasenas
-} = require("../utils/ocultarContrasena");
+const manejarErrorBaseDatos =
+    require("../utils/manejarErrorBaseDatos");
 
-const _usuariosRepository = AppDataSource.getRepository(Usuario);
+const { ocultarContrasena, ocultarContrasenas } = require("../utils/ocultarContrasena");
 
 const usuariosController = {
     /**
      * Obtiene todos los usuarios registrados.
      */
-    getAllUsuarios: async (req, res) => {
+    async getAllUsuarios(req, res) {
         try {
-            const usuarios = await _usuariosRepository.find({
-                order: {
-                    id_usuario: "ASC"
-                }
-            });
+            const usuarios = await usuarioService.getAll();
 
-            return res.status(200).json(
-                ocultarContrasenas(usuarios)
-            );
+            return res.status(200).json(ocultarContrasenas(usuarios));
         }
         catch (error) {
             return manejarErrorBaseDatos(error, res);
@@ -33,19 +24,17 @@ const usuariosController = {
     /**
      * Obtiene un usuario por su ID.
      */
-    getUsuarioPorId: async (req, res) => {
+    async getUsuarioPorId(req, res) {
         try {
-            const { id_usuario } = req.params;
+            const id = Number(req.params.id_usuario);
 
-            if (Number.isNaN(Number(id_usuario))) {
+            if (Number.isNaN(id)) {
                 return res.status(400).json({
                     error: "ID de usuario inválido."
                 });
             }
 
-            const usuario = await _usuariosRepository.findOneBy({
-                id_usuario: Number(id_usuario)
-            });
+            const usuario = await usuarioService.getById(id);
 
             if (!usuario) {
                 return res.status(404).json({
@@ -53,9 +42,7 @@ const usuariosController = {
                 });
             }
 
-            return res.status(200).json(
-                ocultarContrasena(usuario)
-            );
+            return res.status(200).json(ocultarContrasena(usuario));
         }
         catch (error) {
             return manejarErrorBaseDatos(error, res);
@@ -65,48 +52,11 @@ const usuariosController = {
     /**
      * Crea un nuevo usuario.
      */
-    createUsuario: async (req, res) => {
+    async createUsuario(req, res) {
         try {
-            const {
-                run,
-                nombres,
-                apellido_paterno,
-                apellido_materno,
-                correo,
-                hash_contrasena,
-                rol,
-                activo
-            } = req.body;
+            const usuario = await usuarioService.create(req.body);
 
-            if (
-                !run ||
-                !nombres ||
-                !apellido_paterno ||
-                !correo ||
-                !hash_contrasena ||
-                !rol
-            ) {
-                return res.status(400).json({
-                    error: "run, nombres, apellido_paterno, correo, hash_contrasena y rol son obligatorios."
-                });
-            }
-
-            const usuario = _usuariosRepository.create({
-                run,
-                nombres,
-                apellido_paterno,
-                apellido_materno,
-                correo,
-                hash_contrasena,
-                rol,
-                activo
-            });
-
-            await _usuariosRepository.save(usuario);
-
-            return res.status(201).json(
-                ocultarContrasena(usuario)
-            );
+            return res.status(201).json(ocultarContrasena(usuario));
         }
         catch (error) {
             if (error.code === "23505") {
@@ -122,70 +72,23 @@ const usuariosController = {
     /**
      * Actualiza un usuario existente.
      */
-    updateUsuario: async (req, res) => {
+    async updateUsuario(req, res) {
         try {
-            const { id_usuario } = req.params;
+            const id = Number(req.params.id_usuario);
 
-            if (Number.isNaN(Number(id_usuario))) {
+            if (Number.isNaN(id)) {
                 return res.status(400).json({
                     error: "ID de usuario inválido."
                 });
             }
 
-            const usuario = await _usuariosRepository.findOneBy({
-                id_usuario: Number(id_usuario)
-            });
+            const usuario = await usuarioService.update(id, req.body);
 
             if (!usuario) {
                 return res.status(404).json({
                     error: "Usuario no encontrado."
                 });
             }
-
-            const {
-                run,
-                nombres,
-                apellido_paterno,
-                apellido_materno,
-                correo,
-                hash_contrasena,
-                rol,
-                activo
-            } = req.body;
-
-            if (run !== undefined) {
-                usuario.run = run;
-            }
-
-            if (nombres !== undefined) {
-                usuario.nombres = nombres;
-            }
-
-            if (apellido_paterno !== undefined) {
-                usuario.apellido_paterno = apellido_paterno;
-            }
-
-            if (apellido_materno !== undefined) {
-                usuario.apellido_materno = apellido_materno;
-            }
-
-            if (correo !== undefined) {
-                usuario.correo = correo;
-            }
-
-            if (hash_contrasena !== undefined) {
-                usuario.hash_contrasena = hash_contrasena;
-            }
-
-            if (rol !== undefined) {
-                usuario.rol = rol;
-            }
-
-            if (activo !== undefined) {
-                usuario.activo = activo;
-            }
-
-            await _usuariosRepository.save(usuario);
 
             return res.status(200).json(
                 ocultarContrasena(usuario)
@@ -205,27 +108,23 @@ const usuariosController = {
     /**
      * Elimina un usuario.
      */
-    deleteUsuario: async (req, res) => {
+    async deleteUsuario(req, res) {
         try {
-            const { id_usuario } = req.params;
+            const id = Number(req.params.id_usuario);
 
-            if (Number.isNaN(Number(id_usuario))) {
+            if (Number.isNaN(id)) {
                 return res.status(400).json({
                     error: "ID de usuario inválido."
                 });
             }
 
-            const usuario = await _usuariosRepository.findOneBy({
-                id_usuario: Number(id_usuario)
-            });
+            const deleted = await usuarioService.delete(id);
 
-            if (!usuario) {
+            if (!deleted) {
                 return res.status(404).json({
                     error: "Usuario no encontrado."
                 });
             }
-
-            await _usuariosRepository.remove(usuario);
 
             return res.status(200).json({
                 message: "Usuario eliminado correctamente."
