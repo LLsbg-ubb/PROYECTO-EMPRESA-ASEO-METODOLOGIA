@@ -3,12 +3,24 @@ const AppDataSource = require("../config/db");
 const Servicio = require("../entity/servicio.entity");
 const Usuario = require("../entity/usuario.entity");
 const Cliente = require("../entity/cliente.entity");
+const Trabajador = require("../entity/trabajador.entity");
+const ServicioEspecializacion = require("../entity/servicioEspecializacion.entity");
+const ServicioRecurso = require("../entity/servicioRecurso.entity");
+const Recurso = require("../entity/recurso.entity");
+const AsignacionTrabajador = require("../entity/asignacionTrabajador.entity");
+const AsignacionRecurso = require("../entity/asignacionRecurso.entity");
 
 class ServicioService {
     constructor() {
         this.serviciosRepository = AppDataSource.getRepository(Servicio);
         this.usuariosRepository = AppDataSource.getRepository(Usuario);
         this.clientesRepository = AppDataSource.getRepository(Cliente);
+        this.trabajadoresRepository = AppDataSource.getRepository(Trabajador);
+        this.servicioEspecializacionRepository = AppDataSource.getRepository(ServicioEspecializacion);
+        this.servicioRecursoRepository = AppDataSource.getRepository(ServicioRecurso);
+        this.recursoRepository = AppDataSource.getRepository(Recurso);
+        this.asignacionTrabajadorRepository = AppDataSource.getRepository(AsignacionTrabajador);
+        this.asignacionRecursoRepository = AppDataSource.getRepository(AsignacionRecurso);
     }
 
     /**
@@ -195,6 +207,190 @@ class ServicioService {
         }
 
         await this.serviciosRepository.remove(servicio);
+
+        return true;
+    }
+
+    async asignarServicio(idServicio, trabajadores, recursos, idSupervisor){
+        const servicio = await this.serviciosRepository.findOneBy({
+                id_servicio: idServicio
+            });
+
+        if (!servicio) {
+            return null;
+        }
+
+        if(!servicio.contrato_confirmado){
+            return null;
+        }
+
+        if (servicio.fecha_inicio_real) {
+            return null;
+        }
+
+        const especializacionesServicio = 
+            await servicioEspecializacionRepository.find({
+                where: {
+                    id_servicio: idServicio,
+                },
+                 relations: {
+                    especializacion: true,
+                },
+            });
+        
+        const especializacionesCubiertas = new Set();
+
+        for (const idTrabajador of trabajadores) {
+
+            const trabajador = await trabajadorRepository.findOne({
+                where: {
+                    id_trabajador: idTrabajador,
+                },
+                relations: {
+                    especializaciones: true,
+                },
+            });
+
+            if (!trabajador) {
+                return null;
+            }
+
+            if (trabajador.estado !== "DISPONIBLE") {
+                return null;
+            }
+
+            let cumpleEspecializacion = false;
+
+            for (const te of trabajador.especializaciones) {
+                for (const se of especializacionesServicio) {
+
+                    if (te.id_especializacion === se.id_especializacion) {
+                        cumpleEspecializacion = true;
+
+                        especializacionesCubiertas.add(te.id_especializacion);
+                    }
+
+                }
+            }
+
+            if (!cumpleEspecializacion) {
+                return null;
+            }
+
+        }
+
+        for (const se of especializacionesServicio) {
+
+            if (!especializacionesCubiertas.has(se.id_especializacion)) {
+                return null;
+            }
+
+        }
+
+        const recursosServicio =
+            await servicioRecursoRepository.find({
+            where: {
+                id_servicio: idServicio,
+            },
+        });
+
+        for (const recurso of recursosServicio) {
+
+            if (!recursos.includes(recurso.id_recurso)) {
+                return null;
+            }
+
+        }
+        
+        for (const recursoServicio of recursosServicio) {
+
+            const recurso = await recursoRepository.findOneBy({
+                id_recurso: recursoServicio.id_recurso
+            });
+
+            if (!recurso) {
+                return null;
+            }
+
+            if (recurso.stock_disponible < recursoServicio.cantidad_requerida) {
+                return null;
+            }
+
+        }
+
+        const supervisor = await usuarioRepository.findOneBy({
+            id_usuario: idSupervisor,
+        });
+
+        if (!supervisor) {
+            return null;
+        }
+
+        for (const idTrabajador of trabajadores) {
+
+            const asignacion = asignacionTrabajadorRepository.create({
+                servicio: {
+                    id_servicio: idServicio,
+                },
+
+                trabajador: {
+                    id_trabajador: idTrabajador,
+                },
+
+                asignadoPor: {
+                    id_usuario: idSupervisor,
+                },
+            });
+
+            await asignacionTrabajadorRepository.save(asignacion);
+        }
+
+        for (const idTrabajador of trabajadores) {
+
+            const trabajador = await trabajadorRepository.findOneBy({
+                id_trabajador: idTrabajador
+            });
+
+            trabajador.estado = "ASIGNADO";
+
+            await trabajadorRepository.save(trabajador);
+
+        }
+
+        for (const recursoServicio of recursosServicio) {
+
+            const asignacionRecurso =
+                asignacionRecursoRepository.create({
+
+                    cantidad: recursoServicio.cantidad_requerida,
+
+                    servicio: {
+                        id_servicio: idServicio,
+                    },
+
+                    recurso: {
+                        id_recurso: recursoServicio.id_recurso,
+                    },
+
+                 });
+
+            await asignacionRecursoRepository.save(asignacionRecurso);
+        }
+
+        for (const recursoServicio of recursosServicio) {
+
+            const recurso = await recursoRepository.findOneBy({
+                id_recurso: recursoServicio.id_recurso,
+            });
+
+            recurso.stock_disponible = recurso.stock_disponible - recursoServicio.cantidad_requerida;
+
+            await recursoRepository.save(recurso);
+        }
+
+        servicio.estado = "ASIGNADO";
+
+        await this.serviciosRepository.save(servicio);
 
         return true;
     }

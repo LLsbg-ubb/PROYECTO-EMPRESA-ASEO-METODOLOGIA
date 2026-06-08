@@ -129,6 +129,47 @@ const serviciosController = {
         catch (error) {
             return manejarErrorBaseDatos(error, res);
         }
+    },
+
+    async asignarServicio(req, res) {
+        try {
+
+            const idServicio = Number(req.params.id_servicio);
+
+            if (Number.isNaN(idServicio)) {
+                return res.status(400).json({
+                    error: "ID de servicio inválido."
+                });
+            }
+
+            const {
+                trabajadores,
+                recursos,
+                idSupervisor
+            } = req.body;
+
+            const resultado =
+                await servicioService.asignarServicio(
+                    idServicio,
+                    trabajadores,
+                    recursos,
+                    idSupervisor
+                );
+
+            if (!resultado) {
+                return res.status(400).json({
+                    error: "No fue posible realizar la asignación."
+                });
+            }
+
+            return res.status(200).json({
+                message: "Servicio asignado correctamente."
+            });
+
+        }
+        catch (error) {
+            return manejarErrorBaseDatos(error, res);
+        }
     }
 };
 
