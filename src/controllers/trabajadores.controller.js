@@ -129,7 +129,50 @@ const trabajadoresController = {
         catch (error) {
             return manejarErrorBaseDatos(error, res);
         }
-    }
+    },
+
+    async asignarEspecializacion(req, res) {
+        try {
+
+            const idTrabajador = Number(req.params.id_trabajador);
+
+            if (Number.isNaN(idTrabajador)) {
+                return res.status(400).json({
+                    error: "ID de trabajador inválido."
+                });
+            }
+
+            const { idEspecializacion } = req.body;
+
+            await trabajadorService.asignarEspecializacion(
+                idTrabajador,
+                idEspecializacion
+            );
+
+            return res.status(200).json({
+                message: "Especialización asignada correctamente."
+            });
+
+        }
+        catch (error) {
+
+            if (error.message === "Trabajador no encontrado.") {
+                return res.status(404).json({
+                    error: error.message
+                });
+            }
+
+            if (error.message === "Especialización no encontrada.") {
+                return res.status(404).json({
+                    error: error.message
+                });
+            }
+
+            return res.status(400).json({
+                error: error.message
+            });
+        }
+    },
 };
 
 module.exports = trabajadoresController;

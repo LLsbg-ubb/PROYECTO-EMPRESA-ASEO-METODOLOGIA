@@ -228,6 +228,103 @@ const serviciosController = {
             }
             return manejarErrorBaseDatos(error, res);
         }
+    },
+
+    async asignarEspecializacion(req, res) {
+        try {
+
+            const idServicio = Number(req.params.id_servicio);
+
+            if (Number.isNaN(idServicio)) {
+                return res.status(400).json({
+                    error: "ID de servicio inválido."
+                });
+            }
+
+            const idEspecializacion =
+                Number(req.body.idEspecializacion);
+
+            if (Number.isNaN(idEspecializacion)) {
+                return res.status(400).json({
+                    error: "ID de especialización inválido."
+                });
+            }
+
+            await servicioService.asignarEspecializacion(
+                idServicio,
+                idEspecializacion
+            );
+
+            return res.status(200).json({
+                message: "Especialización asignada correctamente."
+            });
+
+        }
+        catch (error) {
+
+            if (error.message === "Servicio no encontrado.") {
+                return res.status(404).json({
+                    error: error.message
+                });
+            }
+
+            if (error.message === "Especialización no encontrada.") {
+                return res.status(404).json({
+                    error: error.message
+                });
+            }
+
+            return res.status(400).json({
+                error: error.message
+            });
+        }
+    },
+    
+    async asignarRecurso(req, res) {
+        try {
+
+            const idServicio = Number(req.params.id_servicio);
+
+            if (Number.isNaN(idServicio)) {
+                return res.status(400).json({
+                    error: "ID de servicio inválido."
+                });
+            }
+
+            const {
+                idRecurso,
+                cantidadRequerida
+            } = req.body;
+
+            await servicioService.asignarRecurso(
+                idServicio,
+                idRecurso,
+                cantidadRequerida
+            );
+
+            return res.status(200).json({
+                message: "Recurso asignado correctamente."
+            });
+
+        }
+        catch (error) {
+
+            if (error.message === "Servicio no encontrado.") {
+                return res.status(404).json({
+                    error: error.message
+                });
+            }
+
+            if (error.message === "Recurso no encontrado.") {
+                return res.status(404).json({
+                    error: error.message
+                });
+            }
+
+            return res.status(400).json({
+                error: error.message
+            });
+        }
     }
 };
 

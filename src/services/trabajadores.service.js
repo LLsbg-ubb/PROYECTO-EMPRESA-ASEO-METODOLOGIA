@@ -2,11 +2,13 @@ const AppDataSource = require("../config/db");
 
 const Trabajador = require("../entity/trabajador.entity");
 const Usuario = require("../entity/usuario.entity");
+const Especializacion = require("../entity/especializacion.entity");
 
 class TrabajadorService {
     constructor() {
         this.trabajadores = AppDataSource.getRepository(Trabajador);
         this.usuarios = AppDataSource.getRepository(Usuario);
+        this.especializaciones = AppDataSource.getRepository(Especializacion);
     }
 
     /**
@@ -125,6 +127,50 @@ class TrabajadorService {
         await this.trabajadores.remove(trabajador);
 
         return true;
+    }
+
+    async asignarEspecializacion(idTrabajador, idEspecializacion) {
+
+        const trabajador = await this.trabajadores.findOne({
+            where: {
+                id_trabajador: idTrabajador,
+            },
+            relations: {
+                especializaciones: true,
+            },
+        });
+
+        if (!trabajador) {
+            throw new Error("Trabajador no encontrado.");
+        }
+
+        const especializacion =
+            await this.especializaciones.findOneBy({
+                id_especializacion: idEspecializacion,
+            });
+
+        if (!especializacion) {
+            throw new Error("Especialización no encontrada.");
+        }
+
+        for (const especializacionTrabajador of trabajador.especializaciones) {
+
+            if (
+                especializacionTrabajador.id_especializacion ===
+                idEspecializacion
+            ) {
+                throw new Error(
+                    "La especialización ya se encuentra asignada al trabajador."
+                );
+            }
+
+        }
+
+        trabajador.especializaciones.push(especializacion);
+
+        await this.trabajadores.save(trabajador);
+
+        return trabajador;
     }
 }
 

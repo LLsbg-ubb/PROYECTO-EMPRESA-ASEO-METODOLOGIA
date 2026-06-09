@@ -9,6 +9,7 @@ const ServicioRecurso = require("../entity/servicioRecurso.entity");
 const Recurso = require("../entity/recurso.entity");
 const AsignacionTrabajador = require("../entity/asignacionTrabajador.entity");
 const AsignacionRecurso = require("../entity/asignacionRecurso.entity");
+const Especializacion = require("../entity/especializacion.entity");
 
 class ServicioService {
     constructor() {
@@ -21,6 +22,7 @@ class ServicioService {
         this.recursoRepository = AppDataSource.getRepository(Recurso);
         this.asignacionTrabajadorRepository = AppDataSource.getRepository(AsignacionTrabajador);
         this.asignacionRecursoRepository = AppDataSource.getRepository(AsignacionRecurso);
+        this.especializacionRepository = AppDataSource.getRepository(Especializacion);
     }
 
     /**
@@ -504,6 +506,116 @@ class ServicioService {
         }
 
         return this.pagosRepository.save(pago);
+    }
+
+    async asignarEspecializacion(idServicio, idEspecializacion) {
+
+        const servicio = await this.serviciosRepository.findOneBy({
+            id_servicio: idServicio,
+        });
+
+        if (!servicio) {
+            throw new Error("Servicio no encontrado.");
+        }
+
+        const especializacion =
+            await this.especializacionRepository.findOneBy({
+                id_especializacion: idEspecializacion,
+            });
+
+        if (!especializacion) {
+            throw new Error("Especialización no encontrada.");
+        }
+
+        const relacionExistente =
+            await this.servicioEspecializacionRepository.findOneBy({
+                id_servicio: idServicio,
+                id_especializacion: idEspecializacion,
+            });
+
+        if (relacionExistente) {
+            throw new Error(
+                "La especialización ya se encuentra asignada al servicio."
+            );
+        }
+
+        const servicioEspecializacion =
+            this.servicioEspecializacionRepository.create({
+
+                id_servicio: idServicio,
+
+                id_especializacion: idEspecializacion,
+
+                servicio: {
+                    id_servicio: idServicio,
+                },
+
+                especializacion: {
+                    id_especializacion: idEspecializacion,
+                },
+            });
+
+        await this.servicioEspecializacionRepository.save(
+            servicioEspecializacion
+        );
+    }
+    async asignarRecurso(idServicio, idRecurso, cantidadRequerida) {
+
+        const servicio = await this.serviciosRepository.findOneBy({
+            id_servicio: idServicio,
+        });
+
+        if (!servicio) {
+            throw new Error("Servicio no encontrado.");
+        }
+
+        const recurso = await this.recursoRepository.findOneBy({
+            id_recurso: idRecurso,
+        });
+
+        if (!recurso) {
+            throw new Error("Recurso no encontrado.");
+        }
+
+        if (cantidadRequerida <= 0) {
+            throw new Error(
+                "La cantidad requerida debe ser mayor a cero."
+            );
+        }
+
+        const relacionExistente =
+            await this.servicioRecursoRepository.findOneBy({
+                id_servicio: idServicio,
+                id_recurso: idRecurso,
+            });
+
+        if (relacionExistente) {
+            throw new Error(
+                "El recurso ya se encuentra asignado al servicio."
+            );
+        }
+
+        const servicioRecurso =
+            this.servicioRecursoRepository.create({
+
+                id_servicio: idServicio,
+
+                id_recurso: idRecurso,
+
+                cantidad_requerida: cantidadRequerida,
+
+                servicio: {
+                    id_servicio: idServicio,
+                },
+
+                recurso: {
+                    id_recurso: idRecurso,
+                },
+            });
+
+        await this.servicioRecursoRepository.save(
+            servicioRecurso
+        );
     }
 }
 
