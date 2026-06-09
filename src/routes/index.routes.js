@@ -9,5 +9,6 @@ router.use("/trabajadores", require("./trabajadores.routes"));
 router.use("/recursos", require("./recursos.routes"));
 router.use("/reportes", require("./reportes.routes"));
 router.use("/incidencias", require("./incidencias.routes"));
+router.use("/semaforo", require("./semaforo.routes"));
 
 module.exports = router;

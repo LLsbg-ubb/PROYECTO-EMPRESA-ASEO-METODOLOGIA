@@ -4,14 +4,12 @@ const express = require('express');
 const config = require('./config/config');
 const db = require('./config/db');
 const indexRoutes = require('./routes/index.routes');
-const semaforoRoutes = require('./routes/semaforo.routes');
 
 const app = express();
 
 app.use(express.json());
 
 app.use("/api", indexRoutes);
-app.use("/api/semaforo", semaforoRoutes);
 
 app.get('/', (req, res) => {
   res.json({
