@@ -170,6 +170,56 @@ const serviciosController = {
         catch (error) {
             return manejarErrorBaseDatos(error, res);
         }
+    },
+
+    async validarYCerrarServicio(req, res) {
+        try {
+            const idServicio = Number(req.params.id_servicio);
+
+            if (Number.isNaN(idServicio)) {
+                return res.status(400).json({ error: "ID de servicio inválido." });
+            }
+
+            const servicioCerrado = await servicioService.validarYCerrarServicio(idServicio, req.body);
+
+            return res.status(200).json({
+                message: "Formulario de finalización validado y servicio cerrado con éxito.",
+                servicio: servicioCerrado
+            });
+        } catch (error) {
+            if (error.message.includes("Falta información") || error.message.includes("No se puede cerrar")) {
+                return res.status(400).json({ error: error.message });
+            }
+            if (error.message.includes("Servicio no encontrado")) {
+                return res.status(404).json({ error: error.message });
+            }
+            return manejarErrorBaseDatos(error, res);
+        }
+    },
+
+    async registrarPagoServicio(req, res) {
+        try {
+            const idServicio = Number(req.params.id_servicio);
+
+            if (Number.isNaN(idServicio)) {
+                return res.status(400).json({ error: "ID de servicio inválido." });
+            }
+
+            const pagoRegistrado = await servicioService.registrarPago(idServicio, req.body);
+
+            return res.status(201).json({
+                message: "Registro digital de pago completado y comprobante generado.",
+                pago: pagoRegistrado
+            });
+        } catch (error) {
+            if (error.message.includes("obligatorio")) {
+                return res.status(400).json({ error: error.message });
+            }
+            if (error.message.includes("Servicio no encontrado")) {
+                return res.status(404).json({ error: error.message });
+            }
+            return manejarErrorBaseDatos(error, res);
+        }
     }
 };
 
