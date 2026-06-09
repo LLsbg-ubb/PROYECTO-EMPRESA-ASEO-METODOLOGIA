@@ -63,5 +63,12 @@ module.exports = new EntitySchema({
         name: "reportada_por",
       },
     },
+
+    recursosRequeridos: {
+      target: "IncidenciaRecurso",
+      type: "one-to-many",
+      inverseSide: "incidencia",
+      cascade: true,
+    },
   },
 });

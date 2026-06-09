@@ -30,5 +30,11 @@ module.exports = new EntitySchema({
       type: "one-to-many",
       inverseSide: "recurso",
     },
+
+    incidenciasRecursos: {
+      target: "IncidenciaRecurso",
+      type: "one-to-many",
+      inverseSide: "recurso",
+    },
   },
 });

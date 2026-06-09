@@ -8,5 +8,6 @@ router.use("/servicios", require("./servicios.routes"));
 router.use("/trabajadores", require("./trabajadores.routes"));
 router.use("/recursos", require("./recursos.routes"));
 router.use("/reportes", require("./reportes.routes"));
+router.use("/incidencias", require("./incidencias.routes"));
 
 module.exports = router;

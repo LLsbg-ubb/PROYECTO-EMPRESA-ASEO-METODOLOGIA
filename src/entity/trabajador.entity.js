@@ -33,6 +33,7 @@ module.exports = new EntitySchema({
     especializaciones: {
       target: "Especializacion",
       type: "many-to-many",
+      inverseSide: "trabajadores",
       joinTable: {
         name: "trabajador_especializacion",
         joinColumn: {

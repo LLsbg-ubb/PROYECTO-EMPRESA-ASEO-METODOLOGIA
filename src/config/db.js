@@ -9,6 +9,7 @@ const ReporteTerreno = require('../entity/reporteTerreno.entity');
 const Recurso = require('../entity/recurso.entity');
 const Pago = require('../entity/pago.entity');
 const Incidencia = require('../entity/incidencia.entity');
+const IncidenciaRecurso = require('../entity/incidenciaRecurso.entity');
 const Especializacion = require('../entity/especializacion.entity');
 const Cliente = require('../entity/cliente.entity');
 const AsignacionTrabajador = require('../entity/asignacionTrabajador.entity');
@@ -33,6 +34,7 @@ const AppDataSource = new DataSource({
     Recurso,
     Pago,
     Incidencia,
+    IncidenciaRecurso,
     Especializacion,
     Cliente,
     AsignacionTrabajador,

@@ -212,6 +212,14 @@ class ServicioService {
     }
 
     async asignarServicio(idServicio, trabajadores, recursos, idSupervisor){
+        if (!Array.isArray(trabajadores) || trabajadores.length === 0) {
+            return null;
+        }
+
+        if (!Array.isArray(recursos)) {
+            return null;
+        }
+
         const servicio = await this.serviciosRepository.findOneBy({
                 id_servicio: idServicio
             });
@@ -228,8 +236,12 @@ class ServicioService {
             return null;
         }
 
+        if (servicio.estado !== "PENDIENTE") {
+            return null;
+        }
+
         const especializacionesServicio = 
-            await servicioEspecializacionRepository.find({
+            await this.servicioEspecializacionRepository.find({
                 where: {
                     id_servicio: idServicio,
                 },
@@ -242,7 +254,7 @@ class ServicioService {
 
         for (const idTrabajador of trabajadores) {
 
-            const trabajador = await trabajadorRepository.findOne({
+            const trabajador = await this.trabajadoresRepository.findOne({
                 where: {
                     id_trabajador: idTrabajador,
                 },
@@ -288,7 +300,7 @@ class ServicioService {
         }
 
         const recursosServicio =
-            await servicioRecursoRepository.find({
+            await this.servicioRecursoRepository.find({
             where: {
                 id_servicio: idServicio,
             },
@@ -304,7 +316,7 @@ class ServicioService {
         
         for (const recursoServicio of recursosServicio) {
 
-            const recurso = await recursoRepository.findOneBy({
+            const recurso = await this.recursoRepository.findOneBy({
                 id_recurso: recursoServicio.id_recurso
             });
 
@@ -318,7 +330,7 @@ class ServicioService {
 
         }
 
-        const supervisor = await usuarioRepository.findOneBy({
+        const supervisor = await this.usuariosRepository.findOneBy({
             id_usuario: idSupervisor,
         });
 
@@ -326,9 +338,13 @@ class ServicioService {
             return null;
         }
 
+        if (supervisor.rol !== "SUPERVISOR") {
+            return null;
+        }
+
         for (const idTrabajador of trabajadores) {
 
-            const asignacion = asignacionTrabajadorRepository.create({
+            const asignacion = this.asignacionTrabajadorRepository.create({
                 servicio: {
                     id_servicio: idServicio,
                 },
@@ -339,28 +355,28 @@ class ServicioService {
 
                 asignadoPor: {
                     id_usuario: idSupervisor,
-                },
+                 },
             });
 
-            await asignacionTrabajadorRepository.save(asignacion);
+            await this.asignacionTrabajadorRepository.save(asignacion);
         }
 
         for (const idTrabajador of trabajadores) {
 
-            const trabajador = await trabajadorRepository.findOneBy({
+            const trabajador = await this.trabajadoresRepository.findOneBy({
                 id_trabajador: idTrabajador
             });
 
             trabajador.estado = "ASIGNADO";
 
-            await trabajadorRepository.save(trabajador);
+            await this.trabajadoresRepository.save(trabajador);
 
         }
 
         for (const recursoServicio of recursosServicio) {
 
             const asignacionRecurso =
-                asignacionRecursoRepository.create({
+                this.asignacionRecursoRepository.create({
 
                     cantidad: recursoServicio.cantidad_requerida,
 
@@ -374,18 +390,18 @@ class ServicioService {
 
                  });
 
-            await asignacionRecursoRepository.save(asignacionRecurso);
+            await this.asignacionRecursoRepository.save(asignacionRecurso);
         }
 
         for (const recursoServicio of recursosServicio) {
 
-            const recurso = await recursoRepository.findOneBy({
+            const recurso = await this.recursoRepository.findOneBy({
                 id_recurso: recursoServicio.id_recurso,
             });
 
             recurso.stock_disponible = recurso.stock_disponible - recursoServicio.cantidad_requerida;
 
-            await recursoRepository.save(recurso);
+            await this.recursoRepository.save(recurso);
         }
 
         servicio.estado = "ASIGNADO";
