@@ -148,19 +148,12 @@ const serviciosController = {
                 idSupervisor
             } = req.body;
 
-            const resultado =
-                await servicioService.asignarServicio(
-                    idServicio,
-                    trabajadores,
-                    recursos,
-                    idSupervisor
-                );
-
-            if (!resultado) {
-                return res.status(400).json({
-                    error: "No fue posible realizar la asignación."
-                });
-            }
+            await servicioService.asignarServicio(
+                idServicio,
+                trabajadores,
+                recursos,
+                idSupervisor
+            );
 
             return res.status(200).json({
                 message: "Servicio asignado correctamente."
@@ -168,7 +161,22 @@ const serviciosController = {
 
         }
         catch (error) {
-            return manejarErrorBaseDatos(error, res);
+
+            if (error.message === "Servicio no encontrado.") {
+                return res.status(404).json({
+                    error: error.message
+                });
+            }
+
+            if (error.message === "Supervisor no encontrado.") {
+                return res.status(404).json({
+                    error: error.message
+                });
+            }
+
+            return res.status(400).json({
+                error: error.message
+            });
         }
     },
 

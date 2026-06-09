@@ -213,11 +213,15 @@ class ServicioService {
 
     async asignarServicio(idServicio, trabajadores, recursos, idSupervisor){
         if (!Array.isArray(trabajadores) || trabajadores.length === 0) {
-            return null;
+            throw new Error(
+                "Debe asignar al menos un trabajador al servicio."
+            );
         }
 
-        if (!Array.isArray(recursos)) {
-            return null;
+        if (!Array.isArray(recursos) || recursos.length === 0) {
+            throw new Error(
+                "Debe asignar al menos un recurso al servicio."
+            );
         }
 
         const servicio = await this.serviciosRepository.findOneBy({
@@ -225,19 +229,19 @@ class ServicioService {
             });
 
         if (!servicio) {
-            return null;
+            throw new Error("Servicio no encontrado.");
         }
 
         if(!servicio.contrato_confirmado){
-            return null;
+            throw new Error("El contrato del servicio no esta confirmado.");
         }
 
         if (servicio.fecha_inicio_real) {
-            return null;
+            throw new Error("El servicio ya ha sido iniciado.");
         }
 
         if (servicio.estado !== "PENDIENTE") {
-            return null;
+            throw new Error("El servicio no se encuentra en estado PENDIENTE.");
         }
 
         const especializacionesServicio = 
@@ -264,11 +268,11 @@ class ServicioService {
             });
 
             if (!trabajador) {
-                return null;
+                throw new Error(`Trabajador ${idTrabajador} no encontrado.`);
             }
 
             if (trabajador.estado !== "DISPONIBLE") {
-                return null;
+                throw new Error(`El trabajador ${idTrabajador} no esta disponible.`);
             }
 
             let cumpleEspecializacion = false;
@@ -286,7 +290,9 @@ class ServicioService {
             }
 
             if (!cumpleEspecializacion) {
-                return null;
+                throw new Error(
+                    `El trabajador ${idTrabajador} no posee una especialización requerida para el servicio.`
+                );
             }
 
         }
@@ -294,7 +300,9 @@ class ServicioService {
         for (const se of especializacionesServicio) {
 
             if (!especializacionesCubiertas.has(se.id_especializacion)) {
-                return null;
+                throw new Error(
+                    `No existe un trabajador asignado para la especialización ${se.id_especializacion}.`
+                );
             }
 
         }
@@ -309,7 +317,9 @@ class ServicioService {
         for (const recurso of recursosServicio) {
 
             if (!recursos.includes(recurso.id_recurso)) {
-                return null;
+                throw new Error(
+                    `El recurso requerido ${recurso.id_recurso} no fue incluido en la asignación.`
+                );
             }
 
         }
@@ -321,11 +331,15 @@ class ServicioService {
             });
 
             if (!recurso) {
-                return null;
+                throw new Error(
+                    `Recurso ${recursoServicio.id_recurso} no encontrado.`
+                );
             }
 
             if (recurso.stock_disponible < recursoServicio.cantidad_requerida) {
-                return null;
+                throw new Error(
+                    `Stock insuficiente para el recurso ${recursoServicio.id_recurso}.`
+                );
             }
 
         }
@@ -335,11 +349,11 @@ class ServicioService {
         });
 
         if (!supervisor) {
-            return null;
+            throw new Error("Supervisor no encontrado.");
         }
 
         if (supervisor.rol !== "SUPERVISOR") {
-            return null;
+            throw new Error("El usuario indicado no posee rol de supervisor.");
         }
 
         for (const idTrabajador of trabajadores) {
@@ -408,90 +422,89 @@ class ServicioService {
 
         await this.serviciosRepository.save(servicio);
 
-        return true;
     }
 
-        async validarYCerrarServicio(idServicio, datosCierre) {
-            const { observaciones, conformidad_cliente, validacion_cumplimiento } = datosCierre;
-    
-            if (!observaciones?.trim() || conformidad_cliente === undefined || validacion_cumplimiento === undefined) {
-                throw new Error("Falta información obligatoria del servicio (observaciones, conformidad o cumplimiento).");
-            }
-    
-            const servicio = await this.serviciosRepository.findOne({
-                where: { id_servicio: idServicio },
-                relations: {
-                    pago: true,
-                    incidencias: true
-                }
-            });
-    
-            if (!servicio) {
-                throw new Error("Servicio no encontrado.");
-            }
-    
-            if (servicio.estado === "CERRADO") {
-                throw new Error("El servicio ya se encuentra cerrado de manera definitiva.");
-            }
-    
-            const tieneIncidenciasPendientes = servicio.incidencias?.some(inc => inc.estado === "ABIERTA");
-            if (tieneIncidenciasPendientes) {
-                throw new Error("No se puede cerrar el servicio: existen incidencias pendientes (ABIERTA).");
-            }
-    
-            if (!servicio.pago || servicio.pago.estado !== "PAGADO") {
-                throw new Error("No se puede cerrar el servicio: el pago está incompleto o no ha sido registrado.");
-            }
-    
-            servicio.estado = "CERRADO"; 
-            servicio.observaciones = observaciones.trim();
-            servicio.fecha_fin_real = new Date();
-        
-            servicio.conformidad_cliente = conformidad_cliente;
-            servicio.validacion_cumplimiento = validacion_cumplimiento;
-    
-            return this.serviciosRepository.save(servicio);
+    async validarYCerrarServicio(idServicio, datosCierre) {
+        const { observaciones, conformidad_cliente, validacion_cumplimiento } = datosCierre;
+
+        if (!observaciones?.trim() || conformidad_cliente === undefined || validacion_cumplimiento === undefined) {
+            throw new Error("Falta información obligatoria del servicio (observaciones, conformidad o cumplimiento).");
         }
-    
-        async registrarPago(idServicio, datosPago) {
-                const { monto } = datosPago;
-        
-                if (!monto) {
-                    throw new Error("El monto es un campo obligatorio para registrar el pago.");
-                }
-        
-                const servicio = await this.serviciosRepository.findOne({
-                    where: { id_servicio: idServicio },
-                    relations: {
-                        pago: true
-                    }
-                });
-        
-                if (!servicio) {
-                    throw new Error("Servicio no encontrado.");
-                }
-        
-                const comprobanteGenerado = `CMP-${Date.now()}-${idServicio}`;
-        
-                let pago = servicio.pago;
-        
-                if (!pago) {
-                    pago = this.pagosRepository.create({
-                        monto,
-                        comprobante: comprobanteGenerado,
-                        estado: "PAGADO",
-                        fecha_pago: new Date(),
-                        servicio: servicio
-                    });
-                } else {
-                    pago.monto = monto;
-                    pago.comprobante = comprobanteGenerado;
-                    pago.estado = "PAGADO";
-                    pago.fecha_pago = new Date();
-                }
-        
-                return this.pagosRepository.save(pago);
+
+        const servicio = await this.serviciosRepository.findOne({
+            where: { id_servicio: idServicio },
+            relations: {
+                pago: true,
+                incidencias: true
             }
+        });
+
+        if (!servicio) {
+            throw new Error("Servicio no encontrado.");
+        }
+
+        if (servicio.estado === "CERRADO") {
+            throw new Error("El servicio ya se encuentra cerrado de manera definitiva.");
+        }
+
+        const tieneIncidenciasPendientes = servicio.incidencias?.some(inc => inc.estado === "ABIERTA");
+        if (tieneIncidenciasPendientes) {
+            throw new Error("No se puede cerrar el servicio: existen incidencias pendientes (ABIERTA).");
+        }
+
+        if (!servicio.pago || servicio.pago.estado !== "PAGADO") {
+            throw new Error("No se puede cerrar el servicio: el pago está incompleto o no ha sido registrado.");
+        }
+
+        servicio.estado = "CERRADO"; 
+        servicio.observaciones = observaciones.trim();
+        servicio.fecha_fin_real = new Date();
+    
+        servicio.conformidad_cliente = conformidad_cliente;
+        servicio.validacion_cumplimiento = validacion_cumplimiento;
+
+        return this.serviciosRepository.save(servicio);
     }
+
+    async registrarPago(idServicio, datosPago) {
+        const { monto } = datosPago;
+
+        if (!monto) {
+            throw new Error("El monto es un campo obligatorio para registrar el pago.");
+        }
+
+        const servicio = await this.serviciosRepository.findOne({
+            where: { id_servicio: idServicio },
+            relations: {
+                pago: true
+            }
+        });
+
+        if (!servicio) {
+            throw new Error("Servicio no encontrado.");
+        }
+
+        const comprobanteGenerado = `CMP-${Date.now()}-${idServicio}`;
+
+        let pago = servicio.pago;
+
+        if (!pago) {
+            pago = this.pagosRepository.create({
+                monto,
+                comprobante: comprobanteGenerado,
+                estado: "PAGADO",
+                fecha_pago: new Date(),
+                servicio: servicio
+            });
+        } else {
+            pago.monto = monto;
+            pago.comprobante = comprobanteGenerado;
+            pago.estado = "PAGADO";
+            pago.fecha_pago = new Date();
+        }
+
+        return this.pagosRepository.save(pago);
+    }
+}
 
 module.exports = new ServicioService();
