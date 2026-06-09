@@ -410,6 +410,88 @@ class ServicioService {
 
         return true;
     }
-}
+
+        async validarYCerrarServicio(idServicio, datosCierre) {
+            const { observaciones, conformidad_cliente, validacion_cumplimiento } = datosCierre;
+    
+            if (!observaciones?.trim() || conformidad_cliente === undefined || validacion_cumplimiento === undefined) {
+                throw new Error("Falta información obligatoria del servicio (observaciones, conformidad o cumplimiento).");
+            }
+    
+            const servicio = await this.serviciosRepository.findOne({
+                where: { id_servicio: idServicio },
+                relations: {
+                    pago: true,
+                    incidencias: true
+                }
+            });
+    
+            if (!servicio) {
+                throw new Error("Servicio no encontrado.");
+            }
+    
+            if (servicio.estado === "CERRADO") {
+                throw new Error("El servicio ya se encuentra cerrado de manera definitiva.");
+            }
+    
+            const tieneIncidenciasPendientes = servicio.incidencias?.some(inc => inc.estado === "ABIERTA");
+            if (tieneIncidenciasPendientes) {
+                throw new Error("No se puede cerrar el servicio: existen incidencias pendientes (ABIERTA).");
+            }
+    
+            if (!servicio.pago || servicio.pago.estado !== "PAGADO") {
+                throw new Error("No se puede cerrar el servicio: el pago está incompleto o no ha sido registrado.");
+            }
+    
+            servicio.estado = "CERRADO"; 
+            servicio.observaciones = observaciones.trim();
+            servicio.fecha_fin_real = new Date();
+        
+            servicio.conformidad_cliente = conformidad_cliente;
+            servicio.validacion_cumplimiento = validacion_cumplimiento;
+    
+            return this.serviciosRepository.save(servicio);
+        }
+    
+        async registrarPago(idServicio, datosPago) {
+                const { monto } = datosPago;
+        
+                if (!monto) {
+                    throw new Error("El monto es un campo obligatorio para registrar el pago.");
+                }
+        
+                const servicio = await this.serviciosRepository.findOne({
+                    where: { id_servicio: idServicio },
+                    relations: {
+                        pago: true
+                    }
+                });
+        
+                if (!servicio) {
+                    throw new Error("Servicio no encontrado.");
+                }
+        
+                const comprobanteGenerado = `CMP-${Date.now()}-${idServicio}`;
+        
+                let pago = servicio.pago;
+        
+                if (!pago) {
+                    pago = this.pagosRepository.create({
+                        monto,
+                        comprobante: comprobanteGenerado,
+                        estado: "PAGADO",
+                        fecha_pago: new Date(),
+                        servicio: servicio
+                    });
+                } else {
+                    pago.monto = monto;
+                    pago.comprobante = comprobanteGenerado;
+                    pago.estado = "PAGADO";
+                    pago.fecha_pago = new Date();
+                }
+        
+                return this.pagosRepository.save(pago);
+            }
+    }
 
 module.exports = new ServicioService();

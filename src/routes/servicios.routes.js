@@ -10,5 +10,7 @@ router.post("/", serviciosController.createServicio);
 router.put("/:id_servicio", serviciosController.updateServicio);
 router.delete("/:id_servicio", serviciosController.deleteServicio);
 router.post("/:id_servicio/asignar", serviciosController.asignarServicio);
+router.post("/:id_servicio/pago", serviciosController.registrarPagoServicio);
+router.post("/:id_servicio/cerrar", serviciosController.validarYCerrarServicio);
 
 module.exports = router;
