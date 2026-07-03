@@ -145,14 +145,16 @@ const serviciosController = {
             const {
                 trabajadores,
                 recursos,
-                idSupervisor
+                idSupervisor,
+                idAdministrador
             } = req.body;
 
             await servicioService.asignarServicio(
                 idServicio,
                 trabajadores,
                 recursos,
-                idSupervisor
+                idSupervisor,
+                idAdministrador
             );
 
             return res.status(200).json({
@@ -169,6 +171,12 @@ const serviciosController = {
             }
 
             if (error.message === "Supervisor no encontrado.") {
+                return res.status(404).json({
+                    error: error.message
+                });
+            }
+            
+            if (error.message === "Administrador no encontrado.") {
                 return res.status(404).json({
                     error: error.message
                 });

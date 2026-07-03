@@ -92,6 +92,14 @@ module.exports = new EntitySchema({
       inverseSide: "serviciosCreados",
     },
 
+    supervisor: {
+      target: "Usuario",
+      type: "many-to-one",
+      joinColumn: {
+        name: "id_supervisor",
+      },
+    },
+
     asignacionesTrabajadores: {
       target: "AsignacionTrabajador",
       type: "one-to-many",
@@ -126,6 +134,6 @@ module.exports = new EntitySchema({
       target: "ServicioEspecializacion",
       type: "one-to-many",
       inverseSide: "servicio",
-}
+    }
   }
 });

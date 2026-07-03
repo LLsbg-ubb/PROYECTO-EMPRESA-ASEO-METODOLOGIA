@@ -213,7 +213,7 @@ class ServicioService {
         return true;
     }
 
-    async asignarServicio(idServicio, trabajadores, recursos, idSupervisor){
+    async asignarServicio(idServicio, trabajadores, recursos, idSupervisor, idAdministrador){
         if (!Array.isArray(trabajadores) || trabajadores.length === 0) {
             throw new Error(
                 "Debe asignar al menos un trabajador al servicio."
@@ -358,6 +358,20 @@ class ServicioService {
             throw new Error("El usuario indicado no posee rol de supervisor.");
         }
 
+        const administrador = await this.usuariosRepository.findOneBy({
+            id_usuario: idAdministrador,
+        });
+
+        if (!administrador) {
+            throw new Error("Administrador no encontrado.");
+        }   
+
+        if (administrador.rol !== "ADMINISTRATIVO") {
+            throw new Error("El usuario indicado no posee rol administrativo.");
+        }
+
+        servicio.supervisor = supervisor;
+
         for (const idTrabajador of trabajadores) {
 
             const asignacion = this.asignacionTrabajadorRepository.create({
@@ -370,7 +384,7 @@ class ServicioService {
                 },
 
                 asignadoPor: {
-                    id_usuario: idSupervisor,
+                    id_usuario: idAdministrador,
                  },
             });
 
