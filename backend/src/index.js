@@ -1,5 +1,6 @@
 require('reflect-metadata');
 
+const cors = require("cors");
 const express = require('express');
 const config = require('./config/config');
 const db = require('./config/db');
@@ -7,6 +8,7 @@ const indexRoutes = require('./routes/index.routes');
 
 const app = express();
 
+app.use(cors());
 app.use(express.json());
 
 app.use("/api", indexRoutes);

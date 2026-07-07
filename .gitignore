@@ -1,7 +1,18 @@
-node_modules/
+# IDE
 .idea/
-.env
-.env.local
-.DS_Store
+
+# Logs
 *.log
-.npm-cache/
+
+# Environment
+**/.env
+
+# Node
+**/node_modules/
+
+# Build
+**/dist/
+
+# OS
+.DS_Store
+Thumbs.db
