@@ -1,6 +1,10 @@
 const express = require("express");
-const router = express.Router();
+const auth = require("../middlewares/auth.middleware");
 const semaforoController = require("../controllers/semaforo.controller");
+
+const router = express.Router();
+
+router.use(auth);
 
 router.get("/:id", (req, res) => semaforoController.obtenerEstado(req, res));
 
