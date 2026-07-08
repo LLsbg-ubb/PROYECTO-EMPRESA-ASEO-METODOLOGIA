@@ -173,6 +173,85 @@ const trabajadoresController = {
             });
         }
     },
+
+    async updateEspecializacion(req, res) {
+        try {
+            const idTrabajador = Number(req.params.id_trabajador);
+            const idEspecializacionActual = Number(req.params.id_especializacion);
+            const idEspecializacionNueva = Number(req.body.idEspecializacion);
+
+            if (
+                Number.isNaN(idTrabajador) ||
+                Number.isNaN(idEspecializacionActual) ||
+                Number.isNaN(idEspecializacionNueva)
+            ) {
+                return res.status(400).json({
+                    error: "ID de trabajador o especializacion invalido."
+                });
+            }
+
+            await trabajadorService.updateEspecializacion(
+                idTrabajador,
+                idEspecializacionActual,
+                idEspecializacionNueva
+            );
+
+            return res.status(200).json({
+                message: "Especializacion del trabajador actualizada correctamente."
+            });
+        }
+        catch (error) {
+            if (
+                error.message === "Trabajador no encontrado." ||
+                error.message === "Especializacion actual no asignada al trabajador." ||
+                error.message === "Especializacion nueva no encontrada."
+            ) {
+                return res.status(404).json({
+                    error: error.message
+                });
+            }
+
+            return res.status(400).json({
+                error: error.message
+            });
+        }
+    },
+
+    async deleteEspecializacion(req, res) {
+        try {
+            const idTrabajador = Number(req.params.id_trabajador);
+            const idEspecializacion = Number(req.params.id_especializacion);
+
+            if (Number.isNaN(idTrabajador) || Number.isNaN(idEspecializacion)) {
+                return res.status(400).json({
+                    error: "ID de trabajador o especializacion invalido."
+                });
+            }
+
+            await trabajadorService.deleteEspecializacion(
+                idTrabajador,
+                idEspecializacion
+            );
+
+            return res.status(200).json({
+                message: "Especializacion quitada del trabajador correctamente."
+            });
+        }
+        catch (error) {
+            if (
+                error.message === "Trabajador no encontrado." ||
+                error.message === "Especializacion no asignada al trabajador."
+            ) {
+                return res.status(404).json({
+                    error: error.message
+                });
+            }
+
+            return res.status(400).json({
+                error: error.message
+            });
+        }
+    },
 };
 
 module.exports = trabajadoresController;

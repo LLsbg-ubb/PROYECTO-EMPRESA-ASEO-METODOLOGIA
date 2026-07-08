@@ -37,7 +37,17 @@ async function seedDemo() {
 
     const hash = await bcrypt.hash("123456", 10);
 
-    const [admin, supervisora, supervisor, trabajador1, trabajador2, trabajador3] = await usuarios.save([
+    const [
+        admin,
+        supervisora,
+        supervisor,
+        usuarioTrabajador1,
+        usuarioTrabajador2,
+        usuarioTrabajador3,
+        usuarioTrabajador4,
+        usuarioTrabajador5,
+        usuarioTrabajador6
+    ] = await usuarios.save([
         {
             run: "11.111.111-1",
             nombres: "Marcela",
@@ -97,10 +107,46 @@ async function seedDemo() {
             hash_contrasena: hash,
             rol: "TRABAJADOR",
             activo: true
+        },
+        {
+            run: "17.777.777-7",
+            nombres: "Matias",
+            apellido_paterno: "Vidal",
+            apellido_materno: "Reyes",
+            correo: "matias.vidal@aseopremium.cl",
+            hash_contrasena: hash,
+            rol: "TRABAJADOR",
+            activo: true
+        },
+        {
+            run: "18.888.888-8",
+            nombres: "Camila",
+            apellido_paterno: "Navarro",
+            apellido_materno: "Silva",
+            correo: "camila.navarro@aseopremium.cl",
+            hash_contrasena: hash,
+            rol: "TRABAJADOR",
+            activo: true
+        },
+        {
+            run: "19.999.999-9",
+            nombres: "Esteban",
+            apellido_paterno: "Poblete",
+            apellido_materno: "Munoz",
+            correo: "esteban.poblete@aseopremium.cl",
+            hash_contrasena: hash,
+            rol: "TRABAJADOR",
+            activo: true
         }
     ]);
 
-    const especializacionesGuardadas = await especializaciones.save([
+    const [
+        limpiezaIndustrial,
+        sanitizacion,
+        vidrios,
+        oficinas,
+        residuos
+    ] = await especializaciones.save([
         { nombre: "Limpieza industrial" },
         { nombre: "Sanitizacion clinica" },
         { nombre: "Limpieza de vidrios en altura" },
@@ -108,85 +154,151 @@ async function seedDemo() {
         { nombre: "Manejo de residuos" }
     ]);
 
-    const [limpiezaIndustrial, sanitizacion, vidrios, oficinas, residuos] = especializacionesGuardadas;
-
-    const [t1, t2, t3] = await trabajadores.save([
+    const [t1, t2, t3, t4, t5, t6] = await trabajadores.save([
         {
-            usuario: trabajador1,
+            usuario: usuarioTrabajador1,
             fecha_contratacion: "2024-03-11",
             estado: "ASIGNADO",
             especializaciones: [limpiezaIndustrial, oficinas]
         },
         {
-            usuario: trabajador2,
+            usuario: usuarioTrabajador2,
             fecha_contratacion: "2023-08-21",
             estado: "ASIGNADO",
             especializaciones: [sanitizacion, residuos]
         },
         {
-            usuario: trabajador3,
+            usuario: usuarioTrabajador3,
             fecha_contratacion: "2025-01-13",
             estado: "DISPONIBLE",
             especializaciones: [vidrios, oficinas]
+        },
+        {
+            usuario: usuarioTrabajador4,
+            fecha_contratacion: "2024-09-02",
+            estado: "DISPONIBLE",
+            especializaciones: [limpiezaIndustrial, residuos]
+        },
+        {
+            usuario: usuarioTrabajador5,
+            fecha_contratacion: "2025-03-17",
+            estado: "DISPONIBLE",
+            especializaciones: [sanitizacion, residuos]
+        },
+        {
+            usuario: usuarioTrabajador6,
+            fecha_contratacion: "2023-11-06",
+            estado: "DISPONIBLE",
+            especializaciones: [limpiezaIndustrial, oficinas, sanitizacion]
         }
     ]);
 
-    const clientesGuardados = await clientes.save([
-        {
-            rut: "76.345.210-9",
-            razon_social: "Clinica Santa Clara SpA",
-            nombre_contacto: "Paula Valenzuela",
-            telefono: "+56 9 6123 4567",
-            correo: "paula.valenzuela@clinicasantaclara.cl",
-            direccion: "Av. Libertad 1240",
-            comuna: "Concepcion",
-            ciudad: "Concepcion"
-        },
-        {
-            rut: "77.908.654-1",
-            razon_social: "Edificio Torre Biobio",
-            nombre_contacto: "Rodrigo Cardenas",
-            telefono: "+56 9 7345 2210",
-            correo: "administracion@torrebiobio.cl",
-            direccion: "O'Higgins 880",
-            comuna: "Concepcion",
-            ciudad: "Concepcion"
-        },
-        {
-            rut: "78.112.445-6",
-            razon_social: "Comercial Los Arrayanes Ltda.",
-            nombre_contacto: "Natalia Sepulveda",
-            telefono: "+56 41 245 8890",
-            correo: "natalia@losarrayanes.cl",
-            direccion: "Camino a Coronel 4550",
-            comuna: "San Pedro de la Paz",
-            ciudad: "Concepcion"
-        },
-        {
-            rut: "79.654.321-3",
-            razon_social: "Colegio Andalién",
-            nombre_contacto: "Mauricio Lagos",
-            telefono: "+56 9 8122 3099",
-            correo: "operaciones@colegioandalien.cl",
-            direccion: "Los Copihues 340",
-            comuna: "Chiguayante",
-            ciudad: "Concepcion"
-        }
-    ]);
+    const [clinica, torre, comercial, colegio, laboratorio, centroMedico] =
+        await clientes.save([
+            {
+                rut: "76.345.210-9",
+                razon_social: "Clinica Santa Clara SpA",
+                nombre_contacto: "Paula Valenzuela",
+                telefono: "+56 9 6123 4567",
+                correo: "paula.valenzuela@clinicasantaclara.cl",
+                direccion: "Av. Libertad 1240",
+                comuna: "Concepcion",
+                ciudad: "Concepcion"
+            },
+            {
+                rut: "77.908.654-1",
+                razon_social: "Edificio Torre Biobio",
+                nombre_contacto: "Rodrigo Cardenas",
+                telefono: "+56 9 7345 2210",
+                correo: "administracion@torrebiobio.cl",
+                direccion: "O'Higgins 880",
+                comuna: "Concepcion",
+                ciudad: "Concepcion"
+            },
+            {
+                rut: "78.112.445-6",
+                razon_social: "Comercial Los Arrayanes Ltda.",
+                nombre_contacto: "Natalia Sepulveda",
+                telefono: "+56 41 245 8890",
+                correo: "natalia@losarrayanes.cl",
+                direccion: "Camino a Coronel 4550",
+                comuna: "San Pedro de la Paz",
+                ciudad: "Concepcion"
+            },
+            {
+                rut: "79.654.321-3",
+                razon_social: "Colegio Andalien",
+                nombre_contacto: "Mauricio Lagos",
+                telefono: "+56 9 8122 3099",
+                correo: "operaciones@colegioandalien.cl",
+                direccion: "Los Copihues 340",
+                comuna: "Chiguayante",
+                ciudad: "Concepcion"
+            },
+            {
+                rut: "76.887.443-5",
+                razon_social: "Laboratorio BioSur S.A.",
+                nombre_contacto: "Veronica Tapia",
+                telefono: "+56 9 6644 1188",
+                correo: "operaciones@biosur.cl",
+                direccion: "Parque Industrial 1820",
+                comuna: "Talcahuano",
+                ciudad: "Concepcion"
+            },
+            {
+                rut: "77.321.998-4",
+                razon_social: "Centro Medico Plaza Sur",
+                nombre_contacto: "Ignacio Campos",
+                telefono: "+56 41 288 4421",
+                correo: "mantencion@plazasur.cl",
+                direccion: "Barros Arana 215",
+                comuna: "Concepcion",
+                ciudad: "Concepcion"
+            }
+        ]);
 
-    const recursosGuardados = await recursos.save([
-        { nombre: "Desinfectante amonio cuaternario", descripcion: "Bidon de 5 litros para sanitizacion", stock_disponible: 34 },
-        { nombre: "Paños microfibra", descripcion: "Set de panos reutilizables por color", stock_disponible: 120 },
-        { nombre: "Aspiradora industrial", descripcion: "Equipo de alto flujo para oficinas y bodegas", stock_disponible: 8 },
-        { nombre: "Carro estrujador doble balde", descripcion: "Carro de aseo profesional", stock_disponible: 15 },
-        { nombre: "Guantes de nitrilo", descripcion: "Caja de 100 unidades talla M/L", stock_disponible: 48 },
-        { nombre: "Escalera telescopica", descripcion: "Escalera certificada para vidrios en altura baja", stock_disponible: 5 }
-    ]);
+    const [desinfectante, panos, aspiradora, carro, guantes, escalera] =
+        await recursos.save([
+            {
+                nombre: "Desinfectante amonio cuaternario",
+                descripcion: "Bidon de 5 litros para sanitizacion",
+                stock_disponible: 34
+            },
+            {
+                nombre: "Panos microfibra",
+                descripcion: "Set de panos reutilizables por color",
+                stock_disponible: 120
+            },
+            {
+                nombre: "Aspiradora industrial",
+                descripcion: "Equipo de alto flujo para oficinas y bodegas",
+                stock_disponible: 8
+            },
+            {
+                nombre: "Carro estrujador doble balde",
+                descripcion: "Carro de aseo profesional",
+                stock_disponible: 15
+            },
+            {
+                nombre: "Guantes de nitrilo",
+                descripcion: "Caja de 100 unidades talla M/L",
+                stock_disponible: 48
+            },
+            {
+                nombre: "Escalera telescopica",
+                descripcion: "Escalera certificada para vidrios en altura baja",
+                stock_disponible: 5
+            }
+        ]);
 
-    const [desinfectante, panos, aspiradora, carro, guantes, escalera] = recursosGuardados;
-    const [clinica, torre, comercial, colegio] = clientesGuardados;
-
-    const serviciosGuardados = await servicios.save([
+    const [
+        servicioClinica,
+        servicioTorre,
+        servicioBodega,
+        servicioColegio,
+        servicioLaboratorio,
+        servicioCentroMedico
+    ] = await servicios.save([
         {
             nombre_servicio: "Sanitizacion pabellones y boxes",
             direccion_servicio: "Av. Libertad 1240, Concepcion",
@@ -222,10 +334,9 @@ async function seedDemo() {
             estado: "PENDIENTE",
             semaforo: "VERDE",
             contrato_confirmado: false,
-            observaciones: "Cliente confirmara retiro de pallets antes del inicio.",
+            observaciones: "Caso para probar bloqueo por contrato no confirmado.",
             cliente: comercial,
-            creadoPor: admin,
-            supervisor: supervisora
+            creadoPor: admin
         },
         {
             nombre_servicio: "Limpieza vidrios salas y oficinas",
@@ -241,17 +352,43 @@ async function seedDemo() {
             cliente: colegio,
             creadoPor: admin,
             supervisor
+        },
+        {
+            nombre_servicio: "Limpieza industrial laboratorio microbiologia",
+            direccion_servicio: "Parque Industrial 1820, Talcahuano",
+            fecha_inicio_programada: new Date("2026-07-11T08:00:00"),
+            fecha_fin_programada: new Date("2026-07-11T17:00:00"),
+            estado: "PENDIENTE",
+            semaforo: "VERDE",
+            contrato_confirmado: true,
+            observaciones: "Listo para probar asignacion con limpieza industrial y manejo de residuos.",
+            cliente: laboratorio,
+            creadoPor: admin
+        },
+        {
+            nombre_servicio: "Sanitizacion boxes atencion ambulatoria",
+            direccion_servicio: "Barros Arana 215, Concepcion",
+            fecha_inicio_programada: new Date("2026-07-12T07:00:00"),
+            fecha_fin_programada: new Date("2026-07-12T13:00:00"),
+            estado: "PENDIENTE",
+            semaforo: "VERDE",
+            contrato_confirmado: true,
+            observaciones: "Listo para probar asignacion con sanitizacion y mantencion de oficinas.",
+            cliente: centroMedico,
+            creadoPor: admin
         }
     ]);
-
-    const [servicioClinica, servicioTorre, servicioBodega, servicioColegio] = serviciosGuardados;
 
     await serviciosEspecializaciones.save([
         { id_servicio: servicioClinica.id_servicio, id_especializacion: sanitizacion.id_especializacion, servicio: servicioClinica, especializacion: sanitizacion },
         { id_servicio: servicioTorre.id_servicio, id_especializacion: oficinas.id_especializacion, servicio: servicioTorre, especializacion: oficinas },
         { id_servicio: servicioBodega.id_servicio, id_especializacion: limpiezaIndustrial.id_especializacion, servicio: servicioBodega, especializacion: limpiezaIndustrial },
         { id_servicio: servicioBodega.id_servicio, id_especializacion: residuos.id_especializacion, servicio: servicioBodega, especializacion: residuos },
-        { id_servicio: servicioColegio.id_servicio, id_especializacion: vidrios.id_especializacion, servicio: servicioColegio, especializacion: vidrios }
+        { id_servicio: servicioColegio.id_servicio, id_especializacion: vidrios.id_especializacion, servicio: servicioColegio, especializacion: vidrios },
+        { id_servicio: servicioLaboratorio.id_servicio, id_especializacion: limpiezaIndustrial.id_especializacion, servicio: servicioLaboratorio, especializacion: limpiezaIndustrial },
+        { id_servicio: servicioLaboratorio.id_servicio, id_especializacion: residuos.id_especializacion, servicio: servicioLaboratorio, especializacion: residuos },
+        { id_servicio: servicioCentroMedico.id_servicio, id_especializacion: sanitizacion.id_especializacion, servicio: servicioCentroMedico, especializacion: sanitizacion },
+        { id_servicio: servicioCentroMedico.id_servicio, id_especializacion: oficinas.id_especializacion, servicio: servicioCentroMedico, especializacion: oficinas }
     ]);
 
     await serviciosRecursos.save([
@@ -260,14 +397,18 @@ async function seedDemo() {
         { id_servicio: servicioTorre.id_servicio, id_recurso: panos.id_recurso, cantidad_requerida: 20, servicio: servicioTorre, recurso: panos },
         { id_servicio: servicioTorre.id_servicio, id_recurso: carro.id_recurso, cantidad_requerida: 2, servicio: servicioTorre, recurso: carro },
         { id_servicio: servicioBodega.id_servicio, id_recurso: aspiradora.id_recurso, cantidad_requerida: 2, servicio: servicioBodega, recurso: aspiradora },
-        { id_servicio: servicioColegio.id_servicio, id_recurso: escalera.id_recurso, cantidad_requerida: 1, servicio: servicioColegio, recurso: escalera }
+        { id_servicio: servicioColegio.id_servicio, id_recurso: escalera.id_recurso, cantidad_requerida: 1, servicio: servicioColegio, recurso: escalera },
+        { id_servicio: servicioLaboratorio.id_servicio, id_recurso: aspiradora.id_recurso, cantidad_requerida: 1, servicio: servicioLaboratorio, recurso: aspiradora },
+        { id_servicio: servicioLaboratorio.id_servicio, id_recurso: carro.id_recurso, cantidad_requerida: 2, servicio: servicioLaboratorio, recurso: carro },
+        { id_servicio: servicioLaboratorio.id_servicio, id_recurso: guantes.id_recurso, cantidad_requerida: 4, servicio: servicioLaboratorio, recurso: guantes },
+        { id_servicio: servicioCentroMedico.id_servicio, id_recurso: desinfectante.id_recurso, cantidad_requerida: 3, servicio: servicioCentroMedico, recurso: desinfectante },
+        { id_servicio: servicioCentroMedico.id_servicio, id_recurso: panos.id_recurso, cantidad_requerida: 15, servicio: servicioCentroMedico, recurso: panos }
     ]);
 
     await asignacionesTrabajadores.save([
-        { servicio: servicioClinica, trabajador: t2, asignadoPor: supervisora },
-        { servicio: servicioTorre, trabajador: t1, asignadoPor: supervisor },
-        { servicio: servicioBodega, trabajador: t1, asignadoPor: supervisora },
-        { servicio: servicioColegio, trabajador: t3, asignadoPor: supervisor }
+        { servicio: servicioClinica, trabajador: t2, asignadoPor: admin },
+        { servicio: servicioTorre, trabajador: t1, asignadoPor: admin },
+        { servicio: servicioColegio, trabajador: t3, asignadoPor: admin }
     ]);
 
     await asignacionesRecursos.save([
@@ -275,7 +416,6 @@ async function seedDemo() {
         { servicio: servicioClinica, recurso: guantes, cantidad: 3 },
         { servicio: servicioTorre, recurso: carro, cantidad: 2 },
         { servicio: servicioTorre, recurso: panos, cantidad: 20 },
-        { servicio: servicioBodega, recurso: aspiradora, cantidad: 2 },
         { servicio: servicioColegio, recurso: escalera, cantidad: 1 }
     ]);
 
@@ -365,6 +505,9 @@ async function seedDemo() {
     console.log("  ADMINISTRATIVO: admin@aseopremium.cl / 123456");
     console.log("  SUPERVISOR: supervisora@aseopremium.cl / 123456");
     console.log("  TRABAJADOR: javiera.morales@aseopremium.cl / 123456");
+    console.log("Servicios listos para probar asignacion:");
+    console.log("  Limpieza industrial laboratorio microbiologia");
+    console.log("  Sanitizacion boxes atencion ambulatoria");
 }
 
 seedDemo()

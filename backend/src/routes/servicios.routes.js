@@ -27,7 +27,7 @@ router.delete(
 );
 router.post(
     "/:id_servicio/asignar",
-    authorize("SUPERVISOR"),
+    authorize("ADMINISTRATIVO"),
     serviciosController.asignarServicio
 );
 router.post(
@@ -42,13 +42,33 @@ router.post(
 );
 router.post(
     "/:id_servicio/especializaciones",
-    authorize("SUPERVISOR"),
+    authorize("ADMINISTRATIVO"),
     serviciosController.asignarEspecializacion
+);
+router.put(
+    "/:id_servicio/especializaciones/:id_especializacion",
+    authorize("ADMINISTRATIVO"),
+    serviciosController.actualizarEspecializacionRequerida
+);
+router.delete(
+    "/:id_servicio/especializaciones/:id_especializacion",
+    authorize("ADMINISTRATIVO"),
+    serviciosController.eliminarEspecializacionRequerida
 );
 router.post(
     "/:id_servicio/recursos",
-    authorize("SUPERVISOR"),
+    authorize("ADMINISTRATIVO"),
     serviciosController.asignarRecurso
+);
+router.put(
+    "/:id_servicio/recursos/:id_recurso",
+    authorize("ADMINISTRATIVO"),
+    serviciosController.actualizarRecursoRequerido
+);
+router.delete(
+    "/:id_servicio/recursos/:id_recurso",
+    authorize("ADMINISTRATIVO"),
+    serviciosController.eliminarRecursoRequerido
 );
 
 module.exports = router;

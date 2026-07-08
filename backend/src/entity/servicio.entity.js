@@ -134,6 +134,12 @@ module.exports = new EntitySchema({
       target: "ServicioEspecializacion",
       type: "one-to-many",
       inverseSide: "servicio",
+    },
+
+    recursosRequeridos: {
+      target: "ServicioRecurso",
+      type: "one-to-many",
+      inverseSide: "servicio",
     }
   }
 });

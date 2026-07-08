@@ -333,6 +333,167 @@ const serviciosController = {
                 error: error.message
             });
         }
+    },
+
+    async actualizarEspecializacionRequerida(req, res) {
+        try {
+            const idServicio = Number(req.params.id_servicio);
+            const idEspecializacionActual =
+                Number(req.params.id_especializacion);
+            const idEspecializacionNueva =
+                Number(req.body.idEspecializacion);
+
+            if (
+                Number.isNaN(idServicio) ||
+                Number.isNaN(idEspecializacionActual) ||
+                Number.isNaN(idEspecializacionNueva)
+            ) {
+                return res.status(400).json({
+                    error: "IDs de servicio o especialización inválidos."
+                });
+            }
+
+            const relacion =
+                await servicioService.actualizarEspecializacionRequerida(
+                    idServicio,
+                    idEspecializacionActual,
+                    idEspecializacionNueva
+                );
+
+            return res.status(200).json({
+                message: "Especialización requerida actualizada correctamente.",
+                relacion
+            });
+        }
+        catch (error) {
+            if (
+                error.message === "Servicio no encontrado." ||
+                error.message === "Especialización no encontrada." ||
+                error.message === "Especialización requerida no encontrada."
+            ) {
+                return res.status(404).json({
+                    error: error.message
+                });
+            }
+
+            return res.status(400).json({
+                error: error.message
+            });
+        }
+    },
+
+    async eliminarEspecializacionRequerida(req, res) {
+        try {
+            const idServicio = Number(req.params.id_servicio);
+            const idEspecializacion = Number(req.params.id_especializacion);
+
+            if (
+                Number.isNaN(idServicio) ||
+                Number.isNaN(idEspecializacion)
+            ) {
+                return res.status(400).json({
+                    error: "IDs de servicio o especialización inválidos."
+                });
+            }
+
+            await servicioService.eliminarEspecializacionRequerida(
+                idServicio,
+                idEspecializacion
+            );
+
+            return res.status(200).json({
+                message: "Especialización requerida eliminada correctamente."
+            });
+        }
+        catch (error) {
+            if (
+                error.message === "Servicio no encontrado." ||
+                error.message === "Especialización requerida no encontrada."
+            ) {
+                return res.status(404).json({
+                    error: error.message
+                });
+            }
+
+            return res.status(400).json({
+                error: error.message
+            });
+        }
+    },
+
+    async actualizarRecursoRequerido(req, res) {
+        try {
+            const idServicio = Number(req.params.id_servicio);
+            const idRecurso = Number(req.params.id_recurso);
+
+            if (Number.isNaN(idServicio) || Number.isNaN(idRecurso)) {
+                return res.status(400).json({
+                    error: "IDs de servicio o recurso inválidos."
+                });
+            }
+
+            const relacion =
+                await servicioService.actualizarRecursoRequerido(
+                    idServicio,
+                    idRecurso,
+                    req.body.cantidadRequerida
+                );
+
+            return res.status(200).json({
+                message: "Recurso requerido actualizado correctamente.",
+                relacion
+            });
+        }
+        catch (error) {
+            if (
+                error.message === "Servicio no encontrado." ||
+                error.message === "Recurso requerido no encontrado."
+            ) {
+                return res.status(404).json({
+                    error: error.message
+                });
+            }
+
+            return res.status(400).json({
+                error: error.message
+            });
+        }
+    },
+
+    async eliminarRecursoRequerido(req, res) {
+        try {
+            const idServicio = Number(req.params.id_servicio);
+            const idRecurso = Number(req.params.id_recurso);
+
+            if (Number.isNaN(idServicio) || Number.isNaN(idRecurso)) {
+                return res.status(400).json({
+                    error: "IDs de servicio o recurso inválidos."
+                });
+            }
+
+            await servicioService.eliminarRecursoRequerido(
+                idServicio,
+                idRecurso
+            );
+
+            return res.status(200).json({
+                message: "Recurso requerido eliminado correctamente."
+            });
+        }
+        catch (error) {
+            if (
+                error.message === "Servicio no encontrado." ||
+                error.message === "Recurso requerido no encontrado."
+            ) {
+                return res.status(404).json({
+                    error: error.message
+                });
+            }
+
+            return res.status(400).json({
+                error: error.message
+            });
+        }
     }
 };
 

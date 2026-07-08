@@ -27,8 +27,18 @@ router.delete(
 );
 router.post(
     "/:id_trabajador/especializaciones",
-    authorize("ADMINISTRATIVO", "SUPERVISOR"),
+    authorize("ADMINISTRATIVO"),
     trabajadoresController.asignarEspecializacion
+);
+router.put(
+    "/:id_trabajador/especializaciones/:id_especializacion",
+    authorize("ADMINISTRATIVO"),
+    trabajadoresController.updateEspecializacion
+);
+router.delete(
+    "/:id_trabajador/especializaciones/:id_especializacion",
+    authorize("ADMINISTRATIVO"),
+    trabajadoresController.deleteEspecializacion
 );
 
 module.exports = router;

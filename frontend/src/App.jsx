@@ -8,6 +8,7 @@ import Trabajadores from "./pages/Trabajadores.jsx";
 import Clientes from "./pages/Clientes.jsx";
 import Servicios from "./pages/Servicios.jsx";
 import Especializaciones from "./pages/Especializaciones.jsx";
+import TrabajadorEspecializaciones from "./pages/TrabajadorEspecializaciones.jsx";
 import PagosYCierres from "./pages/Pagos.jsx";
 import { useAuth } from "./context/AuthContext.jsx";
 
@@ -87,6 +88,14 @@ export default function App() {
                 element={
                     <ProtectedRoute>
                         <Especializaciones />
+                    </ProtectedRoute>
+                }
+            />
+            <Route
+                path="/trabajador-especializaciones"
+                element={
+                    <ProtectedRoute>
+                        <TrabajadorEspecializaciones />
                     </ProtectedRoute>
                 }
             />

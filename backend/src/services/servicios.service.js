@@ -37,7 +37,25 @@ class ServicioService {
                     cliente: true,
                     creadoPor: true,
                     supervisor: true,
-                    pago: true
+                    pago: true,
+                    especializacionesRequeridas: {
+                        especializacion: true
+                    },
+                    recursosRequeridos: {
+                        recurso: true
+                    },
+                    asignacionesTrabajadores: {
+                        trabajador: {
+                            usuario: true,
+                            especializaciones: true
+                        },
+                        asignadoPor: true
+                    },
+                    asignacionesRecursos: {
+                        recurso: true
+                    },
+                    incidencias: true,
+                    reportes: true
                 },
                 order: {
                     nombre_servicio: "ASC"
@@ -57,7 +75,27 @@ class ServicioService {
             },
             relations: {
                 cliente: true,
-                creadoPor: true
+                creadoPor: true,
+                supervisor: true,
+                pago: true,
+                especializacionesRequeridas: {
+                    especializacion: true
+                },
+                recursosRequeridos: {
+                    recurso: true
+                },
+                asignacionesTrabajadores: {
+                    trabajador: {
+                        usuario: true,
+                        especializaciones: true
+                    },
+                    asignadoPor: true
+                },
+                asignacionesRecursos: {
+                    recurso: true
+                },
+                incidencias: true,
+                reportes: true
             }
         });
     }
@@ -221,7 +259,36 @@ class ServicioService {
         return true;
     }
 
+    async validarServicioPendiente(idServicio) {
+        const servicio = await this.serviciosRepository.findOneBy({
+            id_servicio: idServicio,
+        });
+
+        if (!servicio) {
+            throw new Error("Servicio no encontrado.");
+        }
+
+        if (servicio.estado !== "PENDIENTE") {
+            throw new Error(
+                "Solo se pueden modificar requerimientos de servicios pendientes."
+            );
+        }
+
+        return servicio;
+    }
+
     async asignarServicio(idServicio, trabajadores, recursos, idSupervisor, idAdministrador){
+        const supervisorId = Number(idSupervisor);
+        const administradorId = Number(idAdministrador);
+
+        if (Number.isNaN(supervisorId)) {
+            throw new Error("Debe seleccionar un supervisor para el servicio.");
+        }
+
+        if (Number.isNaN(administradorId)) {
+            throw new Error("Debe indicar el usuario administrativo que asigna el servicio.");
+        }
+
         if (!Array.isArray(trabajadores) || trabajadores.length === 0) {
             throw new Error(
                 "Debe asignar al menos un trabajador al servicio."
@@ -355,7 +422,7 @@ class ServicioService {
         }
 
         const supervisor = await this.usuariosRepository.findOneBy({
-            id_usuario: idSupervisor,
+            id_usuario: supervisorId,
         });
 
         if (!supervisor) {
@@ -367,7 +434,7 @@ class ServicioService {
         }
 
         const administrador = await this.usuariosRepository.findOneBy({
-            id_usuario: idAdministrador,
+            id_usuario: administradorId,
         });
 
         if (!administrador) {
@@ -392,7 +459,7 @@ class ServicioService {
                 },
 
                 asignadoPor: {
-                    id_usuario: idAdministrador,
+                    id_usuario: administradorId,
                  },
             });
 
@@ -532,13 +599,7 @@ class ServicioService {
 
     async asignarEspecializacion(idServicio, idEspecializacion) {
 
-        const servicio = await this.serviciosRepository.findOneBy({
-            id_servicio: idServicio,
-        });
-
-        if (!servicio) {
-            throw new Error("Servicio no encontrado.");
-        }
+        await this.validarServicioPendiente(idServicio);
 
         const especializacion =
             await this.especializacionRepository.findOneBy({
@@ -583,13 +644,7 @@ class ServicioService {
     }
     async asignarRecurso(idServicio, idRecurso, cantidadRequerida) {
 
-        const servicio = await this.serviciosRepository.findOneBy({
-            id_servicio: idServicio,
-        });
-
-        if (!servicio) {
-            throw new Error("Servicio no encontrado.");
-        }
+        await this.validarServicioPendiente(idServicio);
 
         const recurso = await this.recursoRepository.findOneBy({
             id_recurso: idRecurso,
@@ -599,7 +654,9 @@ class ServicioService {
             throw new Error("Recurso no encontrado.");
         }
 
-        if (cantidadRequerida <= 0) {
+        const cantidad = Number(cantidadRequerida);
+
+        if (Number.isNaN(cantidad) || cantidad <= 0) {
             throw new Error(
                 "La cantidad requerida debe ser mayor a cero."
             );
@@ -624,7 +681,7 @@ class ServicioService {
 
                 id_recurso: idRecurso,
 
-                cantidad_requerida: cantidadRequerida,
+                cantidad_requerida: cantidad,
 
                 servicio: {
                     id_servicio: idServicio,
@@ -638,6 +695,126 @@ class ServicioService {
         await this.servicioRecursoRepository.save(
             servicioRecurso
         );
+    }
+
+    async actualizarEspecializacionRequerida(
+        idServicio,
+        idEspecializacionActual,
+        idEspecializacionNueva
+    ) {
+        await this.validarServicioPendiente(idServicio);
+
+        if (idEspecializacionActual === idEspecializacionNueva) {
+            throw new Error("Debe seleccionar una especialización diferente.");
+        }
+
+        const relacionActual =
+            await this.servicioEspecializacionRepository.findOneBy({
+                id_servicio: idServicio,
+                id_especializacion: idEspecializacionActual,
+            });
+
+        if (!relacionActual) {
+            throw new Error("Especialización requerida no encontrada.");
+        }
+
+        const especializacionNueva =
+            await this.especializacionRepository.findOneBy({
+                id_especializacion: idEspecializacionNueva,
+            });
+
+        if (!especializacionNueva) {
+            throw new Error("Especialización no encontrada.");
+        }
+
+        const relacionExistente =
+            await this.servicioEspecializacionRepository.findOneBy({
+                id_servicio: idServicio,
+                id_especializacion: idEspecializacionNueva,
+            });
+
+        if (relacionExistente) {
+            throw new Error(
+                "La especialización ya se encuentra asignada al servicio."
+            );
+        }
+
+        await this.servicioEspecializacionRepository.remove(relacionActual);
+
+        const nuevaRelacion = this.servicioEspecializacionRepository.create({
+            id_servicio: idServicio,
+            id_especializacion: idEspecializacionNueva,
+            servicio: {
+                id_servicio: idServicio,
+            },
+            especializacion: {
+                id_especializacion: idEspecializacionNueva,
+            },
+        });
+
+        return this.servicioEspecializacionRepository.save(nuevaRelacion);
+    }
+
+    async eliminarEspecializacionRequerida(idServicio, idEspecializacion) {
+        await this.validarServicioPendiente(idServicio);
+
+        const relacion =
+            await this.servicioEspecializacionRepository.findOneBy({
+                id_servicio: idServicio,
+                id_especializacion: idEspecializacion,
+            });
+
+        if (!relacion) {
+            throw new Error("Especialización requerida no encontrada.");
+        }
+
+        await this.servicioEspecializacionRepository.remove(relacion);
+
+        return true;
+    }
+
+    async actualizarRecursoRequerido(idServicio, idRecurso, cantidadRequerida) {
+        await this.validarServicioPendiente(idServicio);
+
+        const cantidad = Number(cantidadRequerida);
+
+        if (Number.isNaN(cantidad) || cantidad <= 0) {
+            throw new Error(
+                "La cantidad requerida debe ser mayor a cero."
+            );
+        }
+
+        const relacion =
+            await this.servicioRecursoRepository.findOneBy({
+                id_servicio: idServicio,
+                id_recurso: idRecurso,
+            });
+
+        if (!relacion) {
+            throw new Error("Recurso requerido no encontrado.");
+        }
+
+        relacion.cantidad_requerida = cantidad;
+
+        return this.servicioRecursoRepository.save(relacion);
+    }
+
+    async eliminarRecursoRequerido(idServicio, idRecurso) {
+        await this.validarServicioPendiente(idServicio);
+
+        const relacion =
+            await this.servicioRecursoRepository.findOneBy({
+                id_servicio: idServicio,
+                id_recurso: idRecurso,
+            });
+
+        if (!relacion) {
+            throw new Error("Recurso requerido no encontrado.");
+        }
+
+        await this.servicioRecursoRepository.remove(relacion);
+
+        return true;
     }
 }
 

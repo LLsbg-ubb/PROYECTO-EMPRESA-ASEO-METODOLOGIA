@@ -176,6 +176,80 @@ class TrabajadorService {
 
         return trabajador;
     }
+
+    async updateEspecializacion(idTrabajador, idEspecializacionActual, idEspecializacionNueva) {
+        if (idEspecializacionActual === idEspecializacionNueva) {
+            throw new Error("Debe seleccionar una especializacion diferente.");
+        }
+
+        const trabajador = await this.trabajadores.findOne({
+            where: {
+                id_trabajador: idTrabajador,
+            },
+            relations: {
+                especializaciones: true,
+            },
+        });
+
+        if (!trabajador) {
+            throw new Error("Trabajador no encontrado.");
+        }
+
+        const indiceActual = trabajador.especializaciones.findIndex(
+            especializacion => especializacion.id_especializacion === idEspecializacionActual
+        );
+
+        if (indiceActual === -1) {
+            throw new Error("Especializacion actual no asignada al trabajador.");
+        }
+
+        const especializacionNueva = await this.especializaciones.findOneBy({
+            id_especializacion: idEspecializacionNueva,
+        });
+
+        if (!especializacionNueva) {
+            throw new Error("Especializacion nueva no encontrada.");
+        }
+
+        const yaAsignada = trabajador.especializaciones.some(
+            especializacion => especializacion.id_especializacion === idEspecializacionNueva
+        );
+
+        if (yaAsignada) {
+            throw new Error("La especializacion nueva ya esta asignada al trabajador.");
+        }
+
+        trabajador.especializaciones[indiceActual] = especializacionNueva;
+
+        return this.trabajadores.save(trabajador);
+    }
+
+    async deleteEspecializacion(idTrabajador, idEspecializacion) {
+        const trabajador = await this.trabajadores.findOne({
+            where: {
+                id_trabajador: idTrabajador,
+            },
+            relations: {
+                especializaciones: true,
+            },
+        });
+
+        if (!trabajador) {
+            throw new Error("Trabajador no encontrado.");
+        }
+
+        const cantidadInicial = trabajador.especializaciones.length;
+
+        trabajador.especializaciones = trabajador.especializaciones.filter(
+            especializacion => especializacion.id_especializacion !== idEspecializacion
+        );
+
+        if (trabajador.especializaciones.length === cantidadInicial) {
+            throw new Error("Especializacion no asignada al trabajador.");
+        }
+
+        return this.trabajadores.save(trabajador);
+    }
 }
 
 module.exports = new TrabajadorService();
