@@ -10,6 +10,7 @@ const Recurso = require("../entity/recurso.entity");
 const AsignacionTrabajador = require("../entity/asignacionTrabajador.entity");
 const AsignacionRecurso = require("../entity/asignacionRecurso.entity");
 const Especializacion = require("../entity/especializacion.entity");
+const Pago = require("../entity/pago.entity");
 
 class ServicioService {
     constructor() {
@@ -23,6 +24,7 @@ class ServicioService {
         this.asignacionTrabajadorRepository = AppDataSource.getRepository(AsignacionTrabajador);
         this.asignacionRecursoRepository = AppDataSource.getRepository(AsignacionRecurso);
         this.especializacionRepository = AppDataSource.getRepository(Especializacion);
+        this.pagosRepository = AppDataSource.getRepository(Pago);
     }
 
     /**
@@ -34,7 +36,8 @@ class ServicioService {
                 relations: {
                     cliente: true,
                     creadoPor: true,
-                    supervisor: true
+                    supervisor: true,
+                    pago: true
                 },
                 order: {
                     nombre_servicio: "ASC"
