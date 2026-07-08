@@ -29,13 +29,18 @@ class ServicioService {
      * Obtiene todos los servicios registrados.
      * @returns {Promise<Servicio[]>}
      */
-    async getAll() {
-        return this.serviciosRepository.find({
-            order: {
-                nombre_servicio: "ASC"
-            }
-        });
-    }
+        async getAll() {
+            return this.serviciosRepository.find({
+                relations: {
+                    cliente: true,
+                    creadoPor: true,
+                    supervisor: true
+                },
+                order: {
+                    nombre_servicio: "ASC"
+                }
+            });
+        }
 
     /**
      * Obtiene un servicio por su ID.
