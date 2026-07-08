@@ -3,6 +3,7 @@ import { Navigate, Route, Routes, useLocation } from "react-router-dom";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard.jsx";
 import Incidencias from "./pages/Incidencias.jsx";
+import Recursos from "./pages/Recursos.jsx";
 import { useAuth } from "./context/AuthContext.jsx";
 
 function ProtectedRoute({ children }) {
@@ -41,6 +42,14 @@ export default function App() {
                 element={
                     <ProtectedRoute>
                         <Incidencias />
+                    </ProtectedRoute>
+                }
+            />
+            <Route
+                path="/recursos"
+                element={
+                    <ProtectedRoute>
+                        <Recursos />
                     </ProtectedRoute>
                 }
             />
