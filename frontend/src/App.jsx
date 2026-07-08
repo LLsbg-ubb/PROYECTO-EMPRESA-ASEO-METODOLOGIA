@@ -10,6 +10,7 @@ import Servicios from "./pages/Servicios.jsx";
 import Especializaciones from "./pages/Especializaciones.jsx";
 import TrabajadorEspecializaciones from "./pages/TrabajadorEspecializaciones.jsx";
 import PagosYCierres from "./pages/Pagos.jsx";
+import Reportes from "./pages/Reportes.jsx";
 import { useAuth } from "./context/AuthContext.jsx";
 
 function ProtectedRoute({ children }) {
@@ -104,6 +105,22 @@ export default function App() {
                 element={
                     <ProtectedRoute>
                         <PagosYCierres/>
+                    </ProtectedRoute>
+                }
+            />
+            <Route
+                path="/semaforo"
+                element={
+                    <ProtectedRoute>
+                        <Reportes />
+                    </ProtectedRoute>
+                }
+            />
+            <Route
+                path="/reportes"
+                element={
+                    <ProtectedRoute>
+                        <Reportes />
                     </ProtectedRoute>
                 }
             />

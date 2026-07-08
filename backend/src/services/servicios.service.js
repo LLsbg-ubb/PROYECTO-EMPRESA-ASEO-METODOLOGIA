@@ -11,6 +11,7 @@ const AsignacionTrabajador = require("../entity/asignacionTrabajador.entity");
 const AsignacionRecurso = require("../entity/asignacionRecurso.entity");
 const Especializacion = require("../entity/especializacion.entity");
 const Pago = require("../entity/pago.entity");
+const SemaforoService = require("./semaforo.service");
 
 class ServicioService {
     constructor() {
@@ -25,6 +26,7 @@ class ServicioService {
         this.asignacionRecursoRepository = AppDataSource.getRepository(AsignacionRecurso);
         this.especializacionRepository = AppDataSource.getRepository(Especializacion);
         this.pagosRepository = AppDataSource.getRepository(Pago);
+        this.semaforoService = new SemaforoService();
     }
 
     /**
@@ -512,6 +514,8 @@ class ServicioService {
         servicio.estado = "ASIGNADO";
 
         await this.serviciosRepository.save(servicio);
+
+        await this.semaforoService.recalcularYGuardar(idServicio);
 
     }
 

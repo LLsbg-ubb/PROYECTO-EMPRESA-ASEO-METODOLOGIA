@@ -5,6 +5,7 @@ const IncidenciaRecurso = require("../entity/incidenciaRecurso.entity");
 const Servicio = require("../entity/servicio.entity");
 const Usuario = require("../entity/usuario.entity");
 const Recurso = require("../entity/recurso.entity");
+const SemaforoService = require("./semaforo.service");
 
 class IncidenciaService {
     constructor() {
@@ -13,6 +14,7 @@ class IncidenciaService {
         this.servicios = AppDataSource.getRepository(Servicio);
         this.usuarios = AppDataSource.getRepository(Usuario);
         this.recursos = AppDataSource.getRepository(Recurso);
+        this.semaforoService = new SemaforoService();
     }
 
     /**
@@ -102,7 +104,11 @@ class IncidenciaService {
             recursosRequeridos: await this.crearRecursos(recursos_requeridos)
         });
 
-        return this.incidencias.save(incidencia);
+        const incidenciaGuardada = await this.incidencias.save(incidencia);
+
+        await this.semaforoService.recalcularYGuardar(servicio.id_servicio);
+
+        return incidenciaGuardada;
     }
 
     /**
@@ -158,7 +164,13 @@ class IncidenciaService {
             incidencia.recursosRequeridos = await this.crearRecursos(recursos_requeridos);
         }
 
-        return this.incidencias.save(incidencia);
+        const incidenciaGuardada = await this.incidencias.save(incidencia);
+
+        await this.semaforoService.recalcularYGuardar(
+            incidencia.servicio.id_servicio
+        );
+
+        return incidenciaGuardada;
     }
 
     /**
@@ -185,7 +197,13 @@ class IncidenciaService {
         incidencia.estado = "RESUELTA";
         incidencia.fecha_resolucion = new Date();
 
-        return this.incidencias.save(incidencia);
+        const incidenciaGuardada = await this.incidencias.save(incidencia);
+
+        await this.semaforoService.recalcularYGuardar(
+            incidencia.servicio.id_servicio
+        );
+
+        return incidenciaGuardada;
     }
 
     /**
@@ -198,7 +216,13 @@ class IncidenciaService {
             return false;
         }
 
+        const idServicio = incidencia.servicio?.id_servicio;
+
         await this.incidencias.remove(incidencia);
+
+        if (idServicio) {
+            await this.semaforoService.recalcularYGuardar(idServicio);
+        }
 
         return true;
     }

@@ -3,12 +3,14 @@ const AppDataSource = require("../config/db");
 const Reporte = require("../entity/reporteTerreno.entity");
 const Servicio = require("../entity/servicio.entity");
 const Trabajador = require("../entity/trabajador.entity");
+const SemaforoService = require("./semaforo.service");
 
 class ReporteService {
     constructor() {
         this.reportesRepository = AppDataSource.getRepository(Reporte);
         this.serviciosRepository = AppDataSource.getRepository(Servicio);
         this.trabajadoresRepository = AppDataSource.getRepository(Trabajador);
+        this.semaforoService = new SemaforoService();
     }
 
     /**
@@ -17,6 +19,12 @@ class ReporteService {
      */
     async getAll() {
         return this.reportesRepository.find({
+            relations: {
+                servicio: true,
+                trabajador: {
+                    usuario: true
+                }
+            },
             order: {
                 id_reporte: "ASC"
             }
@@ -94,7 +102,11 @@ class ReporteService {
                 observaciones
             });
 
-        return this.reportesRepository.save(reporte);
+        const reporteGuardado = await this.reportesRepository.save(reporte);
+
+        await this.semaforoService.recalcularYGuardar(servicio.id_servicio);
+
+        return reporteGuardado;
     }
 
     /**
@@ -133,7 +145,11 @@ class ReporteService {
                     : "Sin observaciones.";
         }
 
-        return this.reportesRepository.save(reporte);
+        const reporteGuardado = await this.reportesRepository.save(reporte);
+
+        await this.semaforoService.recalcularYGuardar(reporte.servicio.id_servicio);
+
+        return reporteGuardado;
     }
 
     /**
@@ -142,15 +158,19 @@ class ReporteService {
      * @returns {Promise<boolean>}
      */
     async delete(idReporte) {
-        const reporte = await this.reportesRepository.findOneBy({
-                id_reporte: idReporte
-            });
+        const reporte = await this.getById(idReporte);
 
         if (!reporte) {
             return false;
         }
 
+        const idServicio = reporte.servicio?.id_servicio;
+
         await this.reportesRepository.remove(reporte);
+
+        if (idServicio) {
+            await this.semaforoService.recalcularYGuardar(idServicio);
+        }
 
         return true;
     }

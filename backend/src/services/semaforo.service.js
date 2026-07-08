@@ -1,4 +1,49 @@
+const AppDataSource = require("../config/db");
+const Servicio = require("../entity/servicio.entity");
+
 class SemaforoService {
+    constructor() {
+        this.serviciosRepository = AppDataSource.getRepository(Servicio);
+    }
+
+    async recalcularYGuardar(idServicio) {
+        const servicio = await this.serviciosRepository.findOne({
+            where: {
+                id_servicio: Number(idServicio),
+            },
+            relations: {
+                reportes: true,
+                incidencias: true,
+                asignacionesRecursos: {
+                    recurso: true,
+                },
+            },
+        });
+
+        if (!servicio) {
+            throw new Error("Servicio no encontrado.");
+        }
+
+        const semaforo = this.calcularEstadoSemaforo(
+            servicio,
+            servicio.reportes,
+            servicio.incidencias,
+            servicio.asignacionesRecursos
+        );
+
+        servicio.semaforo = semaforo;
+
+        await this.serviciosRepository.save(servicio);
+
+        return {
+            id_servicio: servicio.id_servicio,
+            nombre_servicio: servicio.nombre_servicio,
+            estado_servicio: servicio.estado,
+            avance_esperado: this.calcularPorcentajeEsperado(servicio),
+            avance_reportado: this.obtenerUltimoReporte(servicio.reportes)?.porcentaje_avance ?? 0,
+            semaforo,
+        };
+    }
 
     calcularEstadoSemaforo(servicio, reportes, incidencias, asignacionesRecursos) {
         if (servicio.estado === 'FINALIZADO' || servicio.estado === 'CERRADO' || servicio.estado === 'CANCELADO'){
@@ -44,13 +89,28 @@ class SemaforoService {
     }
 
     verificarRetrasoOperativo(reportes, servicio){
-        if (!reportes || reportes.length === 0) return true;
-        
-        const reportesOrdenados = [...reportes].sort((a,b) => new Date(a.fecha_reporte) - new Date(b.fecha_reporte));
-        const ultimoReporte = reportesOrdenados[reportesOrdenados.length - 1];
         const porcentajeEsperado = this.calcularPorcentajeEsperado(servicio);
 
-        return ultimoReporte.porcentaje_avance < (porcentajeEsperado - 10);
+        if (!reportes || reportes.length === 0) {
+            return porcentajeEsperado >= 10;
+        }
+
+        const ultimoReporte = this.obtenerUltimoReporte(reportes);
+        const porcentajeAvance = Number(ultimoReporte.porcentaje_avance ?? 0);
+
+        return porcentajeAvance < (porcentajeEsperado - 10);
+    }
+
+    obtenerUltimoReporte(reportes) {
+        if (!reportes || reportes.length === 0) {
+            return null;
+        }
+
+        const reportesOrdenados = [...reportes].sort(
+            (a, b) => new Date(a.fecha_reporte) - new Date(b.fecha_reporte)
+        );
+
+        return reportesOrdenados[reportesOrdenados.length - 1];
     }
 
     calcularPorcentajeEsperado(servicio) {

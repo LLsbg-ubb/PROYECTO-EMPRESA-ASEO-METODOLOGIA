@@ -1,10 +1,7 @@
-const AppDataSource = require("../config/db");
-const Servicio = require("../entity/servicio.entity");
 const SemaforoService = require("../services/semaforo.service");
 
 class SemaforoController {
     constructor() {
-        this.serviciosRepository = AppDataSource.getRepository(Servicio);
         this.semaforoService = new SemaforoService();
     }
 
@@ -15,38 +12,16 @@ class SemaforoController {
             if (isNaN(idServicio)){
                 return res.status(400).json({ message: "ID de servicio invalido." });
             }
-                
-            const servicio = await this.serviciosRepository.findOne({
-                where: { id_servicio: idServicio },
-                relations: {
-                    reportes: true,
-                    incidencias: true,
-                    asignacionesRecursos: {
-                        recurso: true
-                    }
-                }    
-            });
+            const estado = await this.semaforoService.recalcularYGuardar(idServicio);
 
-            if(!servicio){
-                return res.status(404).json({ message: "Servicio no encontrado." });
-            }
-
-            const colorSemaforo = this.semaforoService.calcularEstadoSemaforo(
-                servicio,
-                servicio.reportes,
-                servicio.incidencias,
-                servicio.asignacionesRecursos
-            );
-
-            return res.status(200).json({
-                id_servicio: idServicio,
-                nombre_servicio: servicio.nombre_servicio,
-                estado_servicio: servicio.estado,
-                semaforo: colorSemaforo
-            });
+            return res.status(200).json(estado);
         }
 
         catch (error){
+            if (error.message === "Servicio no encontrado.") {
+                return res.status(404).json({ message: error.message });
+            }
+
             return res.status(500).json({
                 message: "Error al calcular el semaforo.", 
                 error: error.message

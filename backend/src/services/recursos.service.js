@@ -1,9 +1,13 @@
 const AppDataSource = require("../config/db");
 const Recurso = require("../entity/recurso.entity");
+const AsignacionRecurso = require("../entity/asignacionRecurso.entity");
+const SemaforoService = require("./semaforo.service");
 
 class RecursoService {
     constructor() {
         this.repository = AppDataSource.getRepository(Recurso);
+        this.asignacionesRecursos = AppDataSource.getRepository(AsignacionRecurso);
+        this.semaforoService = new SemaforoService();
     }
 
     /**
@@ -64,7 +68,28 @@ class RecursoService {
             stock_disponible
         });
 
-        return this.repository.save(recurso);
+        const recursoGuardado = await this.repository.save(recurso);
+
+        if (stock_disponible !== undefined) {
+            const asignaciones = await this.asignacionesRecursos.find({
+                where: {
+                    recurso: {
+                        id_recurso: idRecurso,
+                    },
+                },
+                relations: {
+                    servicio: true,
+                },
+            });
+
+            for (const asignacion of asignaciones) {
+                await this.semaforoService.recalcularYGuardar(
+                    asignacion.servicio.id_servicio
+                );
+            }
+        }
+
+        return recursoGuardado;
     }
 
     /**
