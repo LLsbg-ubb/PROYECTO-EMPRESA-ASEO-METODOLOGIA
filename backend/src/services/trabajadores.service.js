@@ -17,6 +17,10 @@ class TrabajadorService {
      */
     async getAll() {
         return this.trabajadores.find({
+            relations: {
+                usuario: true,
+                especializaciones: true
+            },
             order: {
                 id_trabajador: "ASC"
             }
