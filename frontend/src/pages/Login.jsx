@@ -1,15 +1,17 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Navigate, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext.jsx";
 
 export default function Login() {
     const navigate = useNavigate();
-    const { login } = useAuth();
+    const location = useLocation();
+    const { isAuthenticated, loading, login } = useAuth();
 
     const [correo, setCorreo] = useState("");
     const [password, setPassword] = useState("");
 
     const [error, setError] = useState("");
+    const from = location.state?.from?.pathname ?? "/";
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -17,11 +19,25 @@ export default function Login() {
         try {
             await login(correo, password);
 
-            navigate("/");
+            navigate(from, { replace: true });
         } catch (err) {
             setError(err.response?.data?.error ?? "No fue posible iniciar sesión.");
         }
     };
+
+    if (loading) {
+        return (
+            <div className="container">
+                <div className="row justify-content-center align-items-center vh-100">
+                    <div className="col-md-4 text-center">Cargando sesion...</div>
+                </div>
+            </div>
+        );
+    }
+
+    if (isAuthenticated) {
+        return <Navigate to="/" replace />;
+    }
 
     return (
         <div className="container">

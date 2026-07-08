@@ -1,8 +1,15 @@
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext.jsx";
 
 export default function Dashboard() {
 
     const navigate = useNavigate();
+    const { logout } = useAuth();
+
+    const handleLogout = () => {
+        logout();
+        navigate("/login", { replace: true });
+    };
 
     return (
         <div className="container mt-5">
@@ -179,7 +186,7 @@ export default function Dashboard() {
                                     Salir del sistema.
                                 </p>
 
-                                <button className="btn btn-danger">
+                                <button className="btn btn-danger" onClick={handleLogout}>
                                     Cerrar Sesión
                                 </button>
                             </div>
