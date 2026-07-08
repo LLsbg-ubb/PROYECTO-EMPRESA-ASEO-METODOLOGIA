@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 
 import api from "../api/axios.js";
 import { useAuth } from "../context/AuthContext.jsx";
+import Semaforo from "../components/Semaforo.jsx";
 
 
 const initialForm = {
@@ -49,7 +50,30 @@ export default function Servicios() {
 
     const { usuario, rol } = useAuth();
 
-
+// --- CEREBRO DEL SEMAFORO ---
+    const calcularSemaforo = (fechaInicio, fechaFin, estadoStr) => {
+        if (!fechaInicio || !fechaFin) return "VERDE";
+        if (estadoStr === "CERRADO" || estadoStr === "FINALIZADO" || estadoStr === "CANCELADO") return "VERDE";
+        
+        const ahora = new Date();
+        const inicio = new Date(fechaInicio);
+        const fin = new Date(fechaFin);
+        
+        // REGLA (ROJO): Si la fecha actual supero el limite y sigue en ejecucion
+        if (ahora > fin) return "ROJO";
+        
+        // REGLA PREVENTIVA (AMARILLO): Si ya se consumio mas del 90% del tiempo
+        const duracionTotal = fin.getTime() - inicio.getTime();
+        const tiempoTranscurrido = ahora.getTime() - inicio.getTime();
+        
+        if (duracionTotal > 0 && tiempoTranscurrido > 0) {
+            const porcentaje = (tiempoTranscurrido / duracionTotal) * 100;
+            if (porcentaje >= 90) return "AMARILLO"; 
+        }
+        
+        return "VERDE";
+    };
+    // ----------------------------------------
 
     const [servicios, setServicios] = useState([]);
 
@@ -258,8 +282,7 @@ export default function Servicios() {
             estado:
                 form.estado,
 
-            semaforo:
-                form.semaforo,
+            semaforo: calcularSemaforo(form.fecha_inicio_programada, form.fecha_fin_programada, form.estado),
 
             contrato_confirmado:
                 form.contrato_confirmado,
@@ -794,6 +817,8 @@ export default function Servicios() {
 
                                         onChange={handleChange}
 
+                                        min={form.fecha_inicio_programada}
+
                                         required
 
                                     />
@@ -876,6 +901,8 @@ export default function Servicios() {
                                         value={form.semaforo}
 
                                         onChange={handleChange}
+
+                                        disabled
 
                                     >
 
@@ -1243,7 +1270,7 @@ export default function Servicios() {
 
 
                                             <td>
-                                                {servicio.semaforo}
+                                                <Semaforo estadoSemaforo={calcularSemaforo(servicio.fecha_inicio_programada, servicio.fecha_fin_programada, servicio.estado)} />
                                             </td>
 
 
