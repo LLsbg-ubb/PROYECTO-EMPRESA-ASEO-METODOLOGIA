@@ -7,6 +7,7 @@ import Recursos from "./pages/Recursos.jsx";
 import Trabajadores from "./pages/Trabajadores.jsx";
 import Clientes from "./pages/Clientes.jsx";
 import Servicios from "./pages/Servicios.jsx";
+import Especializaciones from "./pages/Especializaciones.jsx";
 import { useAuth } from "./context/AuthContext.jsx";
 
 function ProtectedRoute({ children }) {
@@ -77,6 +78,14 @@ export default function App() {
                 element={
                     <ProtectedRoute>
                         <Servicios />
+                    </ProtectedRoute>
+                }
+            />
+            <Route
+                path="/especializaciones"
+                element={
+                    <ProtectedRoute>
+                        <Especializaciones />
                     </ProtectedRoute>
                 }
             />
